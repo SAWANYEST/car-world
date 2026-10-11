@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة إدارة عالم السيارات</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#15243a;background:#f3f6fa}
+*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}
+header{background:#10233c;color:white;padding:20px 0}
+.wrap{max-width:1080px;margin:auto;padding:0 20px}
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
+nav a{color:#b9e9d4;text-decoration:none;font-size:14px}
+main{padding-top:26px;padding-bottom:70px}
+h1{font-size:25px;margin:0 0 7px}h2{font-size:19px;margin:0 0 16px}
+p{line-height:1.8}.muted{color:#66768b;font-size:14px}
+.panel{background:white;border:1px solid #e3e9f0;border-radius:15px;padding:24px;margin-bottom:20px}
+#notice{padding:14px 18px;border-radius:12px;background:#eaf5f0;color:#23664f;line-height:1.8}
+#notice.error{background:#fff1f0;color:#9b3631}
+[hidden]{display:none!important}
+form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+label{display:flex;flex-direction:column;font-size:13px;font-weight:bold;gap:7px}
+input,select{width:100%;min-width:0;border:1px solid #cdd7e3;border-radius:9px;padding:12px;background:#fff;color:#172640}
+input:focus,select:focus{outline:2px solid #91cbb5}
+.actions{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap}
+button{background:#1e8364;border:0;color:white;padding:11px 19px;border-radius:9px;cursor:pointer;font-weight:bold}
+button:disabled{opacity:.55;cursor:wait}
+button.secondary{background:#e7edf3;color:#253d54}
+button.danger{background:#fff1f0;color:#b0443a}
+#list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.item{border:1px solid #dfe6ee;border-radius:12px;padding:15px}
+.item strong{display:block;margin-bottom:8px}
+.item .info{font-size:13px;color:#66768b;margin-bottom:12px}
+.item .buttons{display:flex;gap:10px}
+.help{font-size:12px;color:#66768b}
+@media(max-width:700px){form{grid-template-columns:repeat(2,minmax(0,1fr))}#list{grid-template-columns:1fr}}
+@media(max-width:440px){form{grid-template-columns:1fr}.panel{padding:17px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><nav><strong>إدارة عالم السيارات</strong><a href="index.html">العودة للموقع ←</a></nav></div></header>
+<main class="wrap">
+<h1>لوحة إدارة السيارات</h1>
+<p class="muted">أضف سيارة أو غيّر معلوماتها، وستظهر التغييرات في الموقع عند تحديث الصفحة.</p>
+<p id="notice" role="status" aria-live="polite">جارٍ التحقق من حساب المدير...</p>
+<section id="dashboard" hidden>
+<div class="panel">
+<h2 id="form-title">إضافة سيارة</h2>
+<form id="car-form">
+<input type="hidden" id="car-id">
+<label>الشركة<input id="brand" required maxlength="80" placeholder="تويوتا"></label>
+<label>اسم السيارة<input id="model" required maxlength="80" placeholder="كامري"></label>
+<label>الموديل (السنة)<input id="year" type="number" required min="1950" max="2100" step="1"></label>
+<label>المحرك (لتر)<input id="engine" type="number" required min="0.1" max="99" step="0.1"></label>
+<label>السعر (ريال)<input id="price" type="number" required min="0" max="9999999999" step="0.01"></label>
+<label>نوع السيارة<select id="category"><option value="sedan">سيدان</option><option value="suv">دفع رباعي</option><option value="crossover">كروس أوفر</option></select></label>
+<label style="grid-column:1/-1">رابط صورة السيارة (اختياري)<input id="image-url" type="url" maxlength="2048" placeholder="https://example.com/car.jpg"></label>
+<div class="actions"><button type="submit" id="save">حفظ السيارة</button><button type="button" class="secondary" id="reset">إلغاء التعديل</button></div>
+</form>
+<p class="help">ضع رابط صورة يبدأ بـ https://. إن تركته فارغًا، ستُعرض الصورة التجريبية للطراز إن كانت متوفرة.</p>
+</div>
+<div class="panel"><h2>السيارات الموجودة (<span id="count">0</span>)</h2><div id="list"></div></div>
+</section>
+</main>
+<script src="supabase-config.js"></script>
+<script>
+(() => {
+'use strict';
+const config = window.CAR_WORLD_SUPABASE || {};
+const base = String(config.url || '').replace(/\/+$/,'');
+const key = String(config.publishableKey || '');
+const notice = document.getElementById('notice');
+const dashboard = document.getElementById('dashboard');
+const list = document.getElementById('list');
+const form = document.getElementById('car-form');
+const ids = {id:'car-id',brand:'brand',model:'model',year:'year',engine_liters:'engine',price_sar:'price',category:'category',image_url:'image-url'};
+const get = field => document.getElementById(ids[field]);
+const storeKey = 'car-world-auth-session:' + base;
+let session = null, cars = [], busy = false, verifiedUserId = '';
+const uuidFormat = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function message(txt,bad=false){notice.textContent=txt;notice.classList.toggle('error',bad)}
+function saveSession(data){session={access_token:data.access_token,refresh_token:data.refresh_token,email:data.user?.email||session?.email||'',expires_at:Date.now()+Number(data.expires_in||3600)*1000};sessionStorage.setItem(storeKey,JSON.stringify(session))}
+function clearSession(){session=null;try{sessionStorage.removeItem(storeKey)}catch(_){}}
+async function renew(){
+ if(!session?.refresh_token)throw Error('no_refresh_token');
+ const r=await fetch(base+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});
+ if(!r.ok)throw Error('expired_session');
+ const payload=await r.json();saveSession(payload);
+}
+async function request(path,method='GET',body,extra={}){
+ const send=()=>fetch(base+path,{method,headers:{apikey:key,Authorization:'Bearer '+session.access_token,Accept:'application/json',...(body===undefined?{}:{'Content-Type':'application/json'}),...extra},...(body===undefined?{}:{body:JSON.stringify(body)})});
+ let res=await send();
+ if(res.status===401){await renew();res=await send()}
+ const value=await res.json().catch(()=>null);
+ if(!res.ok)throw Error('request_failed_'+res.status);
+ return value;
+}
+async function setup(){
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(base)||!key.startsWith('sb_publishable_')){message('إعداد قاعدة البيانات غير مكتمل.',true);return}
+ try{session=JSON.parse(sessionStorage.getItem(storeKey)||'null')}catch(_){session=null}
+ if(!session?.access_token||!session?.refresh_token){message('سجل الدخول أولًا من الصفحة الرئيسية، ثم ارجع إلى لوحة الإدارة.',true);return}
+ try{
+   if(Number(session.expires_at)<Date.now()+30000)await renew();
+   const user=await request('/auth/v1/user');
+   if(!user?.id||!uuidFormat.test(user.id))throw Error('user_unverified');
+   verifiedUserId=user.id;
+   const allowed=await request('/rest/v1/site_admins?select=user_id&user_id=eq.'+encodeURIComponent(verifiedUserId)+'&limit=1');
+   if(!Array.isArray(allowed)||allowed.length!==1){message('حسابك ليس مديرًا للموقع. اطلب تفعيل صلاحية الإدارة أولًا.',true);return}
+   dashboard.hidden=false;
+   await load();
+   message('مرحبًا، يمكنك الآن إدارة سيارات الموقع.');
+ }catch(e){
+   dashboard.hidden=true;
+   if(String(e.message).includes('expired_session'))clearSession();
+   message('تعذر التحقق من صلاحية الإدارة. تأكد من تسجيل الدخول وتفعيل حساب المدير في Supabase.',true);
+ }
+}
+async function load(){
+ const rows=await request('/rest/v1/cars?select=id,brand,model,year,engine_liters,price_sar,category,image_url&order=created_at.desc');
+ if(!Array.isArray(rows))throw Error('invalid_data');
+ cars=rows;document.getElementById('count').textContent=String(rows.length);
+ list.replaceChildren();
+ if(!rows.length){list.textContent='لا توجد سيارات بعد.';return}
+ for(const car of rows){
+   const card=document.createElement('div');card.className='item';
+   const name=document.createElement('strong');name.textContent=(car.brand||'')+' '+(car.model||'');
+   const info=document.createElement('div');info.className='info';info.textContent='موديل '+car.year+' · محرك '+car.engine_liters+' لتر · '+new Intl.NumberFormat('ar-SA').format(Number(car.price_sar))+' ريال';
+   const actions=document.createElement('div');actions.className='buttons';
+   const edit=document.createElement('button');edit.type='button';edit.textContent='تعديل';edit.className='secondary';edit.addEventListener('click',()=>editCar(car));
+   const del=document.createElement('button');del.type='button';del.textContent='حذف';del.className='danger';del.addEventListener('click',()=>deleteCar(car));
+   actions.append(edit,del);card.append(name,info,actions);list.append(card);
+ }
+}
+function editCar(car){
+ for(const field of ['id','brand','model','year','engine_liters','price_sar','category','image_url'])get(field).value=car[field]??'';
+ document.getElementById('form-title').textContent='تعديل سيارة: '+car.brand+' '+car.model;
+ document.getElementById('save').textContent='حفظ التعديلات';
+ form.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function reset(){form.reset();get('id').value='';document.getElementById('form-title').textContent='إضافة سيارة';document.getElementById('save').textContent='حفظ السيارة'}
+document.getElementById('reset').addEventListener('click',reset);
+function values(){
+ const data={brand:get('brand').value.trim(),model:get('model').value.trim(),year:Number(get('year').value),engine_liters:Number(get('engine_liters').value),price_sar:Number(get('price_sar').value),category:get('category').value,image_url:get('image_url').value.trim()||null};
+ if(!data.brand||!data.model||data.brand.length>80||data.model.length>80||!Number.isInteger(data.year)||data.year<1950||data.year>2100||!Number.isFinite(data.engine_liters)||data.engine_liters<=0||!Number.isFinite(data.price_sar)||data.price_sar<0||!['sedan','suv','crossover'].includes(data.category))throw Error('invalid_form');
+ if(data.image_url && (!data.image_url.startsWith('https://')||new URL(data.image_url).protocol!=='https:'))throw Error('invalid_image');
+ return data;
+}
+form.addEventListener('submit',async e=>{
+ e.preventDefault();
+ if(busy||!form.reportValidity())return;
+ let data;try{data=values()}catch(_){message('راجع بيانات السيارة ورابط الصورة قبل الحفظ.',true);return}
+ const id=get('id').value;
+ if(id&&!uuidFormat.test(id)){message('معرّف السيارة غير صحيح.',true);return}
+ busy=true;document.getElementById('save').disabled=true;message('جارٍ حفظ البيانات...');
+ try{
+   const path='/rest/v1/cars'+(id?'?id=eq.'+encodeURIComponent(id):'');
+   await request(path,id?'PATCH':'POST',data,{Prefer:'return=minimal'});
+   reset();await load();message(id?'تم تحديث السيارة بنجاح.':'تمت إضافة السيارة بنجاح.');
+ }catch(_){message('تعذر حفظ السيارة. تأكد من صلاحيات حساب المدير وعدم تكرار الاسم والموديل والسنة.',true)}
+ finally{busy=false;document.getElementById('save').disabled=false}
+});
+async function deleteCar(car){
+ if(busy||!uuidFormat.test(String(car.id))||!confirm('هل تريد حذف '+car.brand+' '+car.model+'؟'))return;
+ busy=true;message('جارٍ حذف السيارة...');
+ try{await request('/rest/v1/cars?id=eq.'+encodeURIComponent(car.id),'DELETE',undefined,{Prefer:'return=minimal'});reset();await load();message('تم حذف السيارة.')}
+ catch(_){message('تعذر الحذف. تحقق من صلاحية الإدارة.',true)}
+ finally{busy=false}
+}
+setup();
+})();
+</script>
+</body>
+</html>
