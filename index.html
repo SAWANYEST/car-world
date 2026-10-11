@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1728">
+  <meta name="description" content="عالم السيارات: تصفح السيارات وتعرف على الماركة والموديل وحجم المحرك والأسعار.">
+  <title>عالم السيارات | Car World</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    :root{font-family:Tahoma,Arial,sans-serif;color:#142239;background:#f5f7fa;font-synthesis:none}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1190px;padding:0 24px;margin:auto}
+    .topbar{height:82px;background:#fff;border-bottom:1px solid #e9edf4}
+    .topbar-inner{display:flex;align-items:center;justify-content:space-between;height:100%}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:900;font-size:22px}
+    .brand-icon{display:grid;place-items:center;width:43px;height:43px;background:#10213b;color:#fff;border-radius:14px}
+    .brand small{display:block;font-size:10px;font-weight:500;letter-spacing:1.3px;color:#8893a1;margin-top:3px;direction:ltr;text-align:right}
+    .nav{display:flex;gap:30px;color:#647286;font-size:14px;font-weight:700}
+    .nav a:first-child{color:#142239}
+    .top-pill{color:#396250;background:#e8f7ee;border:1px solid #d3efdc;border-radius:22px;padding:10px 16px;font-size:12px;font-weight:700}
+    .hero{margin:34px auto 0;min-height:323px;background:linear-gradient(112deg,#0c1b31 0%,#142b47 64%,#142f48 100%);color:#fff;border-radius:26px;overflow:hidden;position:relative;display:flex;align-items:center;isolation:isolate}
+    .hero:before{content:"";position:absolute;width:450px;height:450px;left:-100px;top:-220px;border:1px solid #ffffff1e;border-radius:50%;box-shadow:0 0 0 65px #ffffff08,0 0 0 135px #ffffff04;z-index:-1}
+    .hero-copy{padding:43px 52px;position:relative;z-index:2;width:59%}
+    .kicker{color:#a6d7c5;font-size:13px;font-weight:700;letter-spacing:.4px}
+    h1{font-size:42px;line-height:1.42;margin:13px 0 13px;letter-spacing:-1.2px}
+    h1 em{font-style:normal;color:#8edbbd}
+    .hero p{font-size:15px;color:#c0cedb;line-height:1.9;margin:0;max-width:430px}
+    .hero-decoration{position:absolute;left:1.8%;bottom:17px;width:44%;max-width:510px;opacity:.97;filter:drop-shadow(0 24px 18px #0008)}
+    .hero-decoration svg{width:100%;height:auto}
+    .hero-dots{display:flex;gap:8px;margin-top:25px}
+    .hero-dots span{width:6px;height:6px;border-radius:50%;background:#ffffff55}
+    .hero-dots span:first-child{width:28px;border-radius:20px;background:#8edbbd}
+    .intro{padding-top:42px;display:flex;justify-content:space-between;align-items:end;gap:18px}
+    .eyebrow{font-size:12px;color:#20946e;font-weight:800;margin-bottom:8px}
+    h2{font-size:28px;margin:0 0 7px;letter-spacing:-.6px}
+    .muted{color:#788596;font-size:14px;line-height:1.8;margin:0}
+    .count{background:#fff;padding:12px 15px;border:1px solid #e9edf2;border-radius:13px;color:#536579;font-size:13px;white-space:nowrap}
+    .count strong{color:#152742;font-size:18px}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:23px;margin-bottom:23px}
+    .search{display:flex;align-items:center;gap:10px;min-width:250px;width:365px;border:1px solid #e1e7ee;border-radius:13px;background:#fff;padding:0 16px;height:51px;color:#9ba6b2}
+    .search:focus-within{border-color:#298e6e;box-shadow:0 0 0 3px #298e6e17}
+    .search input{outline:none;border:0;background:transparent;flex:1;min-width:0;color:#1f3145;font-size:14px}
+    .search input::placeholder{color:#a1abb8}
+    .filters{display:flex;gap:9px;flex-wrap:wrap}
+    .filter{background:#fff;border:1px solid #e1e7ee;color:#647286;border-radius:12px;font-weight:700;padding:13px 17px;font-size:13px;transition:all .2s}
+    .filter:hover{border-color:#b9c8d5}
+    .filter.active{color:#fff;background:#162841;border-color:#162841}
+    .cars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-bottom:34px}
+    .car{background:#fff;border-radius:18px;border:1px solid #e8edf3;overflow:hidden;box-shadow:0 8px 26px #14223905;transition:transform .2s,box-shadow .2s}
+    .car:hover{transform:translateY(-4px);box-shadow:0 18px 30px #14223911}
+    .car-art{height:197px;background:linear-gradient(135deg,#edf3f7,#e0e8ed);position:relative;overflow:hidden;display:grid;place-items:center}
+    .car-art::after{content:"";position:absolute;width:80%;height:32px;bottom:20px;left:10%;background:#98a9b630;filter:blur(20px);border-radius:50%}
+    .car-art .vehicle{width:93%;max-width:370px;position:relative;z-index:1;filter:drop-shadow(0 10px 7px #45546644)}
+    .car-art .tag{position:absolute;top:15px;right:16px;background:#fff;z-index:2;border:1px solid #e4ebf1;border-radius:18px;color:#63778b;font-weight:700;padding:7px 12px;font-size:11px}
+    .car-body{padding:22px 23px 21px}
+    .car-maker{font-size:12px;color:#79889a;margin-bottom:5px}
+    .car-title{font-size:21px;font-weight:900;color:#192a40;margin:0 0 17px}
+    .specs{border-top:1px solid #edf0f5;padding-top:16px;display:flex;justify-content:space-between;gap:8px;color:#708093;font-size:12px}
+    .specs span{display:flex;align-items:center;gap:6px;white-space:nowrap}
+    .specs svg{color:#92a0ae}
+    .bottom{margin-top:18px;display:flex;align-items:end;justify-content:space-between;gap:6px}
+    .price-label{font-size:11px;color:#8795a5;margin-bottom:5px}
+    .price{font-size:22px;font-weight:900;color:#218667;direction:ltr;text-align:right}
+    .price small{font-size:12px;color:#647588;font-weight:600}
+    .details{background:#eef6f1;border:0;color:#238364;border-radius:11px;padding:11px 14px;font-weight:800;font-size:12px;white-space:nowrap}
+    .details:hover{background:#dcefe5}
+    .note{background:#fff8e6;color:#7d662d;border:1px solid #f3e6ba;border-radius:12px;padding:13px 18px;font-size:12px;line-height:1.9;margin-bottom:42px}
+    .empty{grid-column:1/-1;text-align:center;padding:70px 24px;background:#fff;border:1px dashed #ced8e2;border-radius:20px;color:#617186}
+    .empty strong{display:block;font-size:18px;margin-bottom:9px;color:#23354b}
+    footer{border-top:1px solid #e3e9ee;color:#8c9aaa;padding:22px 0 29px;text-align:center;font-size:12px}
+    dialog{border:0;border-radius:20px;box-shadow:0 30px 90px #081b2b57;width:min(460px,92vw);padding:0;color:#172a40;direction:rtl}
+    dialog::backdrop{background:#05101d9e;backdrop-filter:blur(3px)}
+    .modal-head{background:#10223a;color:#fff;padding:27px 27px 24px;display:flex;justify-content:space-between;gap:10px}
+    .modal-head h3{margin:0;font-size:22px}
+    .modal-head small{color:#9fb4ca;font-size:12px}
+    .x-btn{border:0;background:#ffffff1b;border-radius:9px;color:#fff;font-size:23px;width:35px;height:35px;line-height:1}
+    .modal-details{padding:22px 27px 27px}
+    .detail-line{display:flex;justify-content:space-between;gap:10px;padding:13px 0;border-bottom:1px solid #ebeff3;font-size:14px}
+    .detail-line span{color:#778599}
+    .detail-line strong{color:#1c2e43}
+    .modal-tip{font-size:12px;color:#8a7650;background:#fff8e6;padding:11px 13px;border-radius:10px;margin-top:20px;line-height:1.8}
+    @media(max-width:950px){.hero-copy{width:65%}.hero-decoration{left:-2%;width:45%;opacity:.75}.cars{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{flex-wrap:wrap}.search{width:100%}.filters{order:2}}
+    @media(max-width:620px){.wrap{padding:0 16px}.topbar{height:72px}.nav{display:none}.top-pill{font-size:10px;padding:8px 10px}.brand{font-size:18px}.brand-icon{width:38px;height:38px}.hero{margin-top:16px;min-height:335px;align-items:start;border-radius:20px}.hero-copy{width:100%;padding:28px 24px}.hero h1{font-size:31px;line-height:1.4}.hero p{font-size:12px;max-width:280px}.hero-decoration{width:84%;left:-7%;bottom:2px;opacity:.6}.hero-dots{display:none}.intro{padding-top:29px;align-items:start}h2{font-size:22px}.count{font-size:11px;padding:9px}.count strong{font-size:15px}.toolbar{margin-top:19px}.filters{width:100%;gap:6px}.filter{padding:11px 13px;font-size:12px;flex:1}.cars{grid-template-columns:1fr;gap:16px}.car-art{height:190px}.note{font-size:11px}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a href="#" class="brand" aria-label="عالم السيارات - الرئيسية">
+        <span class="brand-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 16 1.3-6.1A2 2 0 0 1 8.2 8h7.6a2 2 0 0 1 1.9 1.9L19 16M4 16h16v3H4zM6 19v2m12-2v2M6 12h12"/></svg></span>
+        <span>عالم السيارات <small>CAR WORLD</small></span>
+      </a>
+      <nav class="nav" aria-label="التنقل"><a href="#cars-title">السيارات</a><a href="#about">عن المنصة</a></nav>
+      <span class="top-pill">منصة تجريبية</span>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-label="مقدمة المنصة">
+      <div class="hero-copy">
+        <div class="kicker">اكتشف عالم السيارات</div>
+        <h1>سيارتك القادمة<br><em>تبدأ من هنا.</em></h1>
+        <p>تعرّف على أنواع السيارات وموديلاتها، وقارن بين أحجام المحركات والأسعار في مكان واحد.</p>
+        <div class="hero-dots"><span></span><span></span><span></span></div>
+      </div>
+      <div class="hero-decoration" aria-hidden="true">
+        <svg viewBox="0 0 600 310" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="312" cy="265" rx="260" ry="23" fill="#000" opacity=".23"/>
+          <path d="M59 185 107 147 174 127 234 72Q263 51 331 49h95q46 0 83 53l46 48 27 27q16 11 17 33l-9 29h-40q-13-45-55-45-47 0-56 45H189q-10-45-54-45-45 0-53 45H48q-24-11-18-36l9-29Z" fill="#dce6ec" stroke="#f4f8fb" stroke-width="3"/>
+          <path d="m237 76-40 73h164l-1-80h-54q-44 0-69 7Z" fill="#23425b" stroke="#9bb5c6" stroke-width="4"/>
+          <path d="m377 69-1 80h157l-37-49q-20-30-66-31Z" fill="#27435a" stroke="#9bb5c6" stroke-width="4"/>
+          <path d="M53 190h523M202 156h343" stroke="#879cab" stroke-width="3" opacity=".5"/>
+          <path d="M368 156v73" stroke="#6b8498" stroke-width="3"/>
+          <path d="M65 178h62" stroke="#fafbf9" stroke-width="8" stroke-linecap="round"/>
+          <path d="M566 175h23" stroke="#ec7466" stroke-width="9" stroke-linecap="round"/>
+          <circle cx="137" cy="239" r="41" fill="#1a2737" stroke="#8d9da7" stroke-width="8"/>
+          <circle cx="137" cy="239" r="20" fill="#a5b4bd" stroke="#eaf0f5" stroke-width="4"/>
+          <circle cx="487" cy="239" r="41" fill="#1a2737" stroke="#8d9da7" stroke-width="8"/>
+          <circle cx="487" cy="239" r="20" fill="#a5b4bd" stroke="#eaf0f5" stroke-width="4"/>
+        </svg>
+      </div>
+    </section>
+    <section id="catalog" aria-labelledby="cars-title">
+      <div class="intro">
+        <div><div class="eyebrow">تصفّح مجموعتنا</div><h2 id="cars-title">استكشف السيارات</h2><p class="muted">مجموعة سيارات مع أهم المواصفات الأساسية.</p></div>
+        <div class="count"><strong id="count">6</strong> سيارات</div>
+      </div>
+      <div class="toolbar">
+        <div class="filters" role="group" aria-label="تصفية حسب نوع السيارة">
+          <button class="filter active" data-category="all" aria-pressed="true">جميع السيارات</button>
+          <button class="filter" data-category="sedan" aria-pressed="false">سيدان</button>
+          <button class="filter" data-category="suv" aria-pressed="false">دفع رباعي</button>
+          <button class="filter" data-category="crossover" aria-pressed="false">كروس أوفر</button>
+        </div>
+        <label class="search"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="search" type="search" placeholder="ابحث عن سيارة أو شركة..." aria-label="ابحث عن سيارة أو شركة" autocomplete="off"></label>
+      </div>
+      <div class="cars" id="cars" aria-live="polite"></div>
+    </section>
+    <div class="note" id="about"><strong>تنبيه:</strong> هذه منصة تدريبية؛ جميع الأسعار والمواصفات والأشكال المعروضة أمثلة توضيحية، وليست عروض بيع أو مرجعًا للأسعار الرسمية. <span id="source-indicator">يتم عرض بيانات تجريبية محلية.</span></div>
+  </main>
+  <footer>© <span id="year"></span> عالم السيارات — مشروع تدريبي</footer>
+  <dialog id="dialog" aria-labelledby="modal-title"><div class="modal-head"><div><small>بيانات السيارة</small><h3 id="modal-title"></h3></div><button class="x-btn" id="close" aria-label="إغلاق">×</button></div><div class="modal-details" id="modal-details"></div></dialog>
+  <script src="supabase-config.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    const demos = [
+      {id:'demo-1',brand:'تويوتا',model:'كامري',year:2025,engine_liters:2.5,price_sar:113000,category:'sedan',color:'#d8e1e8'},
+      {id:'demo-2',brand:'هيونداي',model:'سوناتا',year:2025,engine_liters:2.5,price_sar:110000,category:'sedan',color:'#a7b9c7'},
+      {id:'demo-3',brand:'فورد',model:'تورس',year:2025,engine_liters:2.0,price_sar:135000,category:'sedan',color:'#8199ad'},
+      {id:'demo-4',brand:'تويوتا',model:'لاندكروزر',year:2025,engine_liters:3.5,price_sar:270000,category:'suv',color:'#d3c7b4'},
+      {id:'demo-5',brand:'كيا',model:'سبورتاج',year:2025,engine_liters:2.0,price_sar:105000,category:'crossover',color:'#97b4b2'},
+      {id:'demo-6',brand:'نيسان',model:'ألتيما',year:2025,engine_liters:2.5,price_sar:111000,category:'sedan',color:'#b5bbc8'}
+    ];
+    const kinds = {sedan:'سيدان',suv:'دفع رباعي',crossover:'كروس أوفر'};
+    const carsEl = document.getElementById('cars');
+    const countEl = document.getElementById('count');
+    const searchEl = document.getElementById('search');
+    const dialog = document.getElementById('dialog');
+    let cars = demos;
+    let selectedCategory = 'all';
+    const money = n => new Intl.NumberFormat('ar-SA').format(Number(n) || 0);
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const safeColor = value => /^#[a-fA-F0-9]{6}$/.test(String(value)) ? value : '#bfced8';
+    const carDrawing = (vehicleColor, category) => {
+      const suv = category === 'suv' || category === 'crossover';
+      return `<svg class="vehicle" viewBox="0 0 450 205" role="img" aria-label="رسم توضيحي للسيارة"><ellipse cx="225" cy="179" rx="182" ry="16" fill="#8293a6" opacity=".18"/><path d="${suv ? 'M35 118 72 104 100 68Q116 46 157 45h151q45 0 70 45l36 18 13 16 3 31-20 12H42l-18-18Z' : 'M30 134 69 111 120 98 161 55q17-17 55-17h92q28 0 53 26l38 35 26 16 9 24-11 29H30L20 151Z'}" fill="${vehicleColor}" stroke="#7890a1" stroke-width="3" stroke-linejoin="round"/><path d="${suv ? 'm113 72-20 36h134V59h-70q-30 0-44 13Zm128-13v49h143l-31-31q-22-18-45-18Z' : 'm172 59-32 42h92V51h-18q-28 0-42 8Zm73-8v50h135l-31-31q-19-19-42-19Z'}" fill="#385367" stroke="#b5c8d2" stroke-width="3"/><path d="M29 143h395" stroke="#71899d" stroke-width="2" opacity=".55"/><path d="M235 109v40" stroke="#738ba0" stroke-width="3"/><path d="M42 131h28" stroke="#f7f9e6" stroke-width="7" stroke-linecap="round"/><path d="M412 129h18" stroke="#db6760" stroke-width="7" stroke-linecap="round"/><circle cx="113" cy="161" r="31" fill="#1b2d3d" stroke="#8395a4" stroke-width="6"/><circle cx="113" cy="161" r="15" fill="#aab9c4" stroke="#e8eff3" stroke-width="3"/><circle cx="349" cy="161" r="31" fill="#1b2d3d" stroke="#8395a4" stroke-width="6"/><circle cx="349" cy="161" r="15" fill="#aab9c4" stroke="#e8eff3" stroke-width="3"/></svg>`;
+    };
+    function render(){
+      const q = searchEl.value.trim().toLocaleLowerCase('ar');
+      const visible = cars.filter(car => (selectedCategory === 'all' || car.category === selectedCategory) && `${car.brand} ${car.model} ${car.year} ${kinds[car.category]||''}`.toLocaleLowerCase('ar').includes(q));
+      countEl.textContent = String(visible.length);
+      if(!visible.length){ carsEl.innerHTML = '<div class="empty"><strong>لا توجد نتائج مطابقة</strong>جرّب اسم سيارة آخر أو غيّر نوع السيارة.</div>'; return; }
+      carsEl.innerHTML = visible.map(car => `<article class="car"><div class="car-art"><span class="tag">${escapeHtml(kinds[car.category]||'سيارة')}</span>${carDrawing(safeColor(car.color),car.category)}</div><div class="car-body"><div class="car-maker">${escapeHtml(car.brand)}</div><h3 class="car-title">${escapeHtml(car.brand)} ${escapeHtml(car.model)}</h3><div class="specs"><span>◷ موديل ${escapeHtml(car.year)}</span><span>⚙ محرك ${escapeHtml(car.engine_liters)} لتر</span></div><div class="bottom"><div><div class="price-label">السعر التقريبي (تجريبي)</div><div class="price">${money(car.price_sar)} <small>ر.س</small></div></div><button class="details" data-id="${escapeHtml(car.id)}">عرض التفاصيل ←</button></div></div></article>`).join('');
+    }
+    function showDetails(car){
+      document.getElementById('modal-title').textContent = `${car.brand} ${car.model}`;
+      document.getElementById('modal-details').innerHTML = [
+        ['الشركة المصنعة',car.brand],['اسم السيارة',car.model],['الموديل',car.year],['حجم المحرك',`${car.engine_liters} لتر`],['نوع السيارة',kinds[car.category]||'سيارة'],['السعر التجريبي',`${money(car.price_sar)} ريال`]
+      ].map(([label,value]) => `<div class="detail-line"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')+'<div class="modal-tip">هذه معلومات تدريبية توضيحية، وليست مواصفات أو أسعارًا معتمدة.</div>';
+      dialog.showModal();
+    }
+    document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click',() => {
+      selectedCategory = btn.dataset.category;
+      document.querySelectorAll('.filter').forEach(other => { const active = other === btn; other.classList.toggle('active',active);other.setAttribute('aria-pressed',String(active)); });
+      render();
+    }));
+    searchEl.addEventListener('input',render);
+    carsEl.addEventListener('click',event => { const button = event.target.closest('button[data-id]');if(!button)return; const car = cars.find(item => String(item.id) === button.dataset.id); if(car)showDetails(car); });
+    document.getElementById('close').addEventListener('click',() => dialog.close());
+    dialog.addEventListener('click',event => {if(event.target === dialog) dialog.close();});
+    document.getElementById('year').textContent = new Date().getFullYear();
+    render();
+    async function loadDatabase(){
+      const config = window.CAR_WORLD_SUPABASE || {};
+      const url = String(config.url || '').replace(/\/+$/,'');
+      const key = String(config.publishableKey || '');
+      if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) || !key) return;
+      const label = document.getElementById('source-indicator');
+      try{
+        const response = await fetch(`${url}/rest/v1/cars?select=id,brand,model,year,engine_liters,price_sar,category,color&order=created_at.desc`, {headers:{apikey:key,Accept:'application/json'}});
+        if(!response.ok) throw new Error(`Supabase HTTP ${response.status}`);
+        const result = await response.json();
+        if(!Array.isArray(result)) throw new Error('Unexpected response');
+        cars = result;
+        label.textContent = 'البيانات معروضة من قاعدة بيانات Supabase.';
+        render();
+      } catch(error){
+        console.error('تعذر تحميل السيارات من Supabase:',error);
+        label.textContent = 'تعذر الاتصال بقاعدة البيانات، ولذلك تُعرض بيانات تجريبية.';
+      }
+    }
+    loadDatabase();
+  })();
+  </script>
+</body>
+</html>
