@@ -73,6 +73,12 @@
     .car-art{height:197px;background:linear-gradient(135deg,#edf3f7,#e0e8ed);position:relative;overflow:hidden;display:grid;place-items:center}
     .car-art::after{content:"";position:absolute;width:80%;height:32px;bottom:20px;left:10%;background:#98a9b630;filter:blur(20px);border-radius:50%}
     .car-art .vehicle{width:93%;max-width:370px;position:relative;z-index:1;filter:drop-shadow(0 10px 7px #45546644)}
+
+    .car-photo{display:block;width:100%;height:100%;object-fit:cover;object-position:center;position:absolute;inset:0}
+    .car-art .tag{z-index:3}
+    .photo-credit{position:absolute;bottom:9px;left:10px;z-index:3;max-width:calc(100% - 24px);padding:5px 9px;border-radius:7px;background:#061527ca;color:#fff;font-size:10px;line-height:1.45;text-align:left;direction:ltr}
+    .photo-credit:hover{text-decoration:underline}
+    .photo-missing{z-index:2;position:relative;font-size:13px;color:#506175}
     .car-art .tag{position:absolute;top:15px;right:16px;background:#fff;z-index:2;border:1px solid #e4ebf1;border-radius:18px;color:#63778b;font-weight:700;padding:7px 12px;font-size:11px}
     .car-body{padding:22px 23px 21px}
     .car-maker{font-size:12px;color:#79889a;margin-bottom:5px}
@@ -175,6 +181,15 @@
       {id:'demo-6',brand:'نيسان',model:'ألتيما',year:2025,engine_liters:2.5,price_sar:111000,category:'sedan',color:'#b5bbc8'}
     ];
     const kinds = {sedan:'سيدان',suv:'دفع رباعي',crossover:'كروس أوفر'};
+    const carPhotos = {
+      "تويوتا|كامري": {file:"2025 Toyota Camry LE, front left.jpg", hash:"a/aa", credit:"MercurySable99", photographedModel:"2025"},
+      "هيونداي|سوناتا": {file:"2024 Hyundai Sonata (facelift), front.jpg", hash:"b/bd", credit:"Kevauto", photographedModel:"2024، نفس جيل موديل 2025"},
+      "فورد|تورس": {file:"Ford Taurus 2023 (Front end, GCC Market).jpg", hash:"8/86", credit:"Mohammed Hamad", photographedModel:"2023، نفس جيل موديل 2025"},
+      "تويوتا|لاندكروزر": {file:"Toyota LAND CRUISER AX (3BA-VJA300W-GNUAZ) front.jpg", hash:"d/db", credit:"Tokumeigakarinoaoshima", photographedModel:"2024، الجيل J300"},
+      "كيا|سبورتاج": {file:"2025 Kia Sportage S front only.jpg", hash:"5/5d", credit:"LuvsMG481", photographedModel:"2025"},
+      "نيسان|ألتيما": {file:"2024 Nissan Altima SR, front left, 05-05-2025.jpg", hash:"5/59", credit:"MercurySable99", photographedModel:"2024، نفس جيل موديل 2025"},
+    };
+
     const carsEl = document.getElementById('cars');
     const countEl = document.getElementById('count');
     const searchEl = document.getElementById('search');
@@ -188,12 +203,21 @@
       const suv = category === 'suv' || category === 'crossover';
       return `<svg class="vehicle" viewBox="0 0 450 205" role="img" aria-label="رسم توضيحي للسيارة"><ellipse cx="225" cy="179" rx="182" ry="16" fill="#8293a6" opacity=".18"/><path d="${suv ? 'M35 118 72 104 100 68Q116 46 157 45h151q45 0 70 45l36 18 13 16 3 31-20 12H42l-18-18Z' : 'M30 134 69 111 120 98 161 55q17-17 55-17h92q28 0 53 26l38 35 26 16 9 24-11 29H30L20 151Z'}" fill="${vehicleColor}" stroke="#7890a1" stroke-width="3" stroke-linejoin="round"/><path d="${suv ? 'm113 72-20 36h134V59h-70q-30 0-44 13Zm128-13v49h143l-31-31q-22-18-45-18Z' : 'm172 59-32 42h92V51h-18q-28 0-42 8Zm73-8v50h135l-31-31q-19-19-42-19Z'}" fill="#385367" stroke="#b5c8d2" stroke-width="3"/><path d="M29 143h395" stroke="#71899d" stroke-width="2" opacity=".55"/><path d="M235 109v40" stroke="#738ba0" stroke-width="3"/><path d="M42 131h28" stroke="#f7f9e6" stroke-width="7" stroke-linecap="round"/><path d="M412 129h18" stroke="#db6760" stroke-width="7" stroke-linecap="round"/><circle cx="113" cy="161" r="31" fill="#1b2d3d" stroke="#8395a4" stroke-width="6"/><circle cx="113" cy="161" r="15" fill="#aab9c4" stroke="#e8eff3" stroke-width="3"/><circle cx="349" cy="161" r="31" fill="#1b2d3d" stroke="#8395a4" stroke-width="6"/><circle cx="349" cy="161" r="15" fill="#aab9c4" stroke="#e8eff3" stroke-width="3"/></svg>`;
     };
+    function carPhoto(car){
+      const photo = carPhotos[`${car.brand}|${car.model}`];
+      if(!photo) return carDrawing(safeColor(car.color),car.category);
+      const filename = encodeURIComponent(photo.file.replaceAll(' ','_'));
+      const image = `https://upload.wikimedia.org/wikipedia/commons/thumb/${photo.hash}/${filename}/960px-${filename}`;
+      const fallback = `https://commons.wikimedia.org/wiki/Special:FilePath/${filename}?width=960`;
+      const source = `https://commons.wikimedia.org/wiki/File:${filename}`;
+      return `<img class="car-photo" src="${escapeHtml(image)}" data-fallback="${escapeHtml(fallback)}" alt="صورة ${escapeHtml(car.brand)} ${escapeHtml(car.model)} من الجيل الموافق للموديل" loading="lazy" decoding="async" referrerpolicy="no-referrer"><a class="photo-credit" href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer" title="المصور: ${escapeHtml(photo.credit)}؛ ${escapeHtml(photo.photographedModel)}؛ ترخيص CC BY-SA 4.0">صورة: ${escapeHtml(photo.credit)} · CC BY-SA 4.0</a>`;
+    }
     function render(){
       const q = searchEl.value.trim().toLocaleLowerCase('ar');
       const visible = cars.filter(car => (selectedCategory === 'all' || car.category === selectedCategory) && `${car.brand} ${car.model} ${car.year} ${kinds[car.category]||''}`.toLocaleLowerCase('ar').includes(q));
       countEl.textContent = String(visible.length);
       if(!visible.length){ carsEl.innerHTML = '<div class="empty"><strong>لا توجد نتائج مطابقة</strong>جرّب اسم سيارة آخر أو غيّر نوع السيارة.</div>'; return; }
-      carsEl.innerHTML = visible.map(car => `<article class="car"><div class="car-art"><span class="tag">${escapeHtml(kinds[car.category]||'سيارة')}</span>${carDrawing(safeColor(car.color),car.category)}</div><div class="car-body"><div class="car-maker">${escapeHtml(car.brand)}</div><h3 class="car-title">${escapeHtml(car.brand)} ${escapeHtml(car.model)}</h3><div class="specs"><span>◷ موديل ${escapeHtml(car.year)}</span><span>⚙ محرك ${escapeHtml(car.engine_liters)} لتر</span></div><div class="bottom"><div><div class="price-label">السعر التقريبي (تجريبي)</div><div class="price">${money(car.price_sar)} <small>ر.س</small></div></div><button class="details" data-id="${escapeHtml(car.id)}">عرض التفاصيل ←</button></div></div></article>`).join('');
+      carsEl.innerHTML = visible.map(car => `<article class="car"><div class="car-art"><span class="tag">${escapeHtml(kinds[car.category]||'سيارة')}</span>${carPhoto(car)}</div><div class="car-body"><div class="car-maker">${escapeHtml(car.brand)}</div><h3 class="car-title">${escapeHtml(car.brand)} ${escapeHtml(car.model)}</h3><div class="specs"><span>◷ موديل ${escapeHtml(car.year)}</span><span>⚙ محرك ${escapeHtml(car.engine_liters)} لتر</span></div><div class="bottom"><div><div class="price-label">السعر التقريبي (تجريبي)</div><div class="price">${money(car.price_sar)} <small>ر.س</small></div></div><button class="details" data-id="${escapeHtml(car.id)}">عرض التفاصيل ←</button></div></div></article>`).join('');
     }
     function showDetails(car){
       document.getElementById('modal-title').textContent = `${car.brand} ${car.model}`;
@@ -209,6 +233,25 @@
     }));
     searchEl.addEventListener('input',render);
     carsEl.addEventListener('click',event => { const button = event.target.closest('button[data-id]');if(!button)return; const car = cars.find(item => String(item.id) === button.dataset.id); if(car)showDetails(car); });
+    // Retry via Wikimedia Commons when direct thumbnail delivery fails.
+    carsEl.addEventListener('error',event => {
+      const img = event.target;
+      if(!(img instanceof HTMLImageElement) || !img.classList.contains('car-photo')) return;
+      if(img.dataset.fallback && !img.dataset.triedFallback){
+        img.dataset.triedFallback = '1';
+        img.src = img.dataset.fallback;
+        return;
+      }
+      const wrapper = img.closest('.car-art');
+      img.remove();
+      wrapper?.querySelector('.photo-credit')?.remove();
+      if(wrapper && !wrapper.querySelector('.photo-missing')){
+        const msg = document.createElement('span');
+        msg.className = 'photo-missing';
+        msg.textContent = 'تعذر تحميل صورة السيارة';
+        wrapper.append(msg);
+      }
+    },true);
     document.getElementById('close').addEventListener('click',() => dialog.close());
     dialog.addEventListener('click',event => {if(event.target === dialog) dialog.close();});
     document.getElementById('year').textContent = new Date().getFullYear();
