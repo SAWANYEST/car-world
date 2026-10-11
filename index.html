@@ -163,7 +163,7 @@
       </div>
       <div class="cars" id="cars" aria-live="polite"></div>
     </section>
-    <div class="note" id="about"><strong>تنبيه:</strong> هذه منصة تدريبية؛ جميع الأسعار والمواصفات والأشكال المعروضة أمثلة توضيحية، وليست عروض بيع أو مرجعًا للأسعار الرسمية. <span id="source-indicator">يتم عرض بيانات تجريبية محلية.</span></div>
+    <div class="note" id="about"><strong>تنبيه:</strong> هذه منصة تدريبية؛ الأسعار والمواصفات أمثلة توضيحية وليست عروض بيع أو مرجعًا رسميًا. صور السيارات فوتوغرافية للطراز أو الجيل المقابل؛ وقد تختلف سنة التصوير أو الفئة أو مواصفات السوق المحلي. <span id="source-indicator">يتم عرض بيانات تجريبية محلية.</span></div>
   </main>
   <footer>© <span id="year"></span> عالم السيارات — مشروع تدريبي</footer>
   <dialog id="dialog" aria-labelledby="modal-title"><div class="modal-head"><div><small>بيانات السيارة</small><h3 id="modal-title"></h3></div><button class="x-btn" id="close" aria-label="إغلاق">×</button></div><div class="modal-details" id="modal-details"></div></dialog>
@@ -210,7 +210,7 @@
       const image = `https://upload.wikimedia.org/wikipedia/commons/thumb/${photo.hash}/${filename}/960px-${filename}`;
       const fallback = `https://commons.wikimedia.org/wiki/Special:FilePath/${filename}?width=960`;
       const source = `https://commons.wikimedia.org/wiki/File:${filename}`;
-      return `<img class="car-photo" src="${escapeHtml(image)}" data-fallback="${escapeHtml(fallback)}" alt="صورة ${escapeHtml(car.brand)} ${escapeHtml(car.model)} من الجيل الموافق للموديل" loading="lazy" decoding="async" referrerpolicy="no-referrer"><a class="photo-credit" href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer" title="المصور: ${escapeHtml(photo.credit)}؛ ${escapeHtml(photo.photographedModel)}؛ ترخيص CC BY-SA 4.0">صورة: ${escapeHtml(photo.credit)} · CC BY-SA 4.0</a>`;
+      return `<img class="car-photo" src="${escapeHtml(image)}" data-fallback="${escapeHtml(fallback)}" alt="صورة ${escapeHtml(car.brand)} ${escapeHtml(car.model)} من الجيل الموافق للموديل" loading="lazy" decoding="async" referrerpolicy="no-referrer"><a class="photo-credit" href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer" title="المصور: ${escapeHtml(photo.credit)}؛ ${escapeHtml(photo.photographedModel)}؛ المصدر يبيّن ترخيص CC BY-SA 4.0">صورة: ${escapeHtml(photo.credit)} · CC BY-SA 4.0</a>`;
     }
     function render(){
       const q = searchEl.value.trim().toLocaleLowerCase('ar');
