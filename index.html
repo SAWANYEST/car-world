@@ -25,6 +25,7 @@
     .top-pill{color:#396250;background:#e8f7ee;border:1px solid #d3efdc;border-radius:22px;padding:10px 16px;font-size:12px;font-weight:700}
     [hidden]{display:none!important}
     .header-actions{display:flex;align-items:center;gap:9px;min-width:0}
+    .admin-link{background:#e8f7ee;color:#176247;border:1px solid #d6e4dc;padding:10px 13px;border-radius:11px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap}
     .auth-trigger,.auth-logout{border:1px solid #d6e4dc;background:#eaf7ee;color:#176247;padding:10px 13px;border-radius:11px;font-weight:800;font-size:12px;white-space:nowrap}
     .auth-logout{border-color:#e1e7ee;color:#485b6d;background:#fff}
     .auth-state{color:#536579;font-size:12px;max-width:185px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right}
@@ -119,7 +120,7 @@
         <span>عالم السيارات <small>CAR WORLD</small></span>
       </a>
       <nav class="nav" aria-label="التنقل"><a href="#cars-title">السيارات</a><a href="#about">عن المنصة</a></nav>
-      <div class="header-actions"><span class="top-pill">منصة تجريبية</span><span id="auth-state" class="auth-state" hidden></span><button id="auth-open" type="button" class="auth-trigger">إنشاء حساب / دخول</button><button id="auth-logout" type="button" class="auth-logout" hidden>تسجيل الخروج</button></div>
+      <div class="header-actions"><span class="top-pill">منصة تجريبية</span><span id="auth-state" class="auth-state" hidden></span><a id="admin-link" href="admin.html" class="admin-link" hidden>لوحة الإدارة</a><button id="auth-open" type="button" class="auth-trigger">إنشاء حساب / دخول</button><button id="auth-logout" type="button" class="auth-logout" hidden>تسجيل الخروج</button></div>
     </div>
   </header>
   <main class="wrap">
@@ -204,6 +205,10 @@
       return `<svg class="vehicle" viewBox="0 0 450 205" role="img" aria-label="رسم توضيحي للسيارة"><ellipse cx="225" cy="179" rx="182" ry="16" fill="#8293a6" opacity=".18"/><path d="${suv ? 'M35 118 72 104 100 68Q116 46 157 45h151q45 0 70 45l36 18 13 16 3 31-20 12H42l-18-18Z' : 'M30 134 69 111 120 98 161 55q17-17 55-17h92q28 0 53 26l38 35 26 16 9 24-11 29H30L20 151Z'}" fill="${vehicleColor}" stroke="#7890a1" stroke-width="3" stroke-linejoin="round"/><path d="${suv ? 'm113 72-20 36h134V59h-70q-30 0-44 13Zm128-13v49h143l-31-31q-22-18-45-18Z' : 'm172 59-32 42h92V51h-18q-28 0-42 8Zm73-8v50h135l-31-31q-19-19-42-19Z'}" fill="#385367" stroke="#b5c8d2" stroke-width="3"/><path d="M29 143h395" stroke="#71899d" stroke-width="2" opacity=".55"/><path d="M235 109v40" stroke="#738ba0" stroke-width="3"/><path d="M42 131h28" stroke="#f7f9e6" stroke-width="7" stroke-linecap="round"/><path d="M412 129h18" stroke="#db6760" stroke-width="7" stroke-linecap="round"/><circle cx="113" cy="161" r="31" fill="#1b2d3d" stroke="#8395a4" stroke-width="6"/><circle cx="113" cy="161" r="15" fill="#aab9c4" stroke="#e8eff3" stroke-width="3"/><circle cx="349" cy="161" r="31" fill="#1b2d3d" stroke="#8395a4" stroke-width="6"/><circle cx="349" cy="161" r="15" fill="#aab9c4" stroke="#e8eff3" stroke-width="3"/></svg>`;
     };
     function carPhoto(car){
+      const custom = String(car.image_url || '').trim();
+      if(/^https:\/\/[^\s]+$/i.test(custom) && custom.length <= 2048){
+        return `<img class="car-photo" src="${escapeHtml(custom)}" alt="صورة ${escapeHtml(car.brand)} ${escapeHtml(car.model)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
+      }
       const photo = carPhotos[`${car.brand}|${car.model}`];
       if(!photo) return carDrawing(safeColor(car.color),car.category);
       const filename = encodeURIComponent(photo.file.replaceAll(' ','_'));
@@ -263,7 +268,7 @@
       if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) || !key) return;
       const label = document.getElementById('source-indicator');
       try{
-        const response = await fetch(`${url}/rest/v1/cars?select=id,brand,model,year,engine_liters,price_sar,category,color&order=created_at.desc`, {headers:{apikey:key,Accept:'application/json'}});
+        const response = await fetch(`${url}/rest/v1/cars?select=id,brand,model,year,engine_liters,price_sar,category,color,image_url&order=created_at.desc`, {headers:{apikey:key,Accept:'application/json'}});
         if(!response.ok) throw new Error(`Supabase HTTP ${response.status}`);
         const result = await response.json();
         if(!Array.isArray(result)) throw new Error('Unexpected response');
@@ -299,6 +304,7 @@
   const signUpTab = document.getElementById('auth-tab-signup');
   const signInTab = document.getElementById('auth-tab-signin');
   const storeKey = `car-world-auth-session:${base}`;
+  const adminLink = document.getElementById('admin-link');
   let mode = 'signup';
   let session = null;
   let busy = false;
@@ -326,7 +332,21 @@
     submit.textContent = mode === 'signup' ? 'إنشاء حساب' : 'تسجيل الدخول';
     message('');
   }
+  async function updateAdminAccess() {
+    const token = session?.access_token;
+    adminLink.hidden = true;
+    if(!token) return;
+    try {
+      const response = await fetch(base + '/rest/v1/site_admins?select=user_id&limit=1', {
+        headers:{apikey:apiKey,Authorization:'Bearer ' + token,Accept:'application/json'}
+      });
+      const records = response.ok ? await response.json() : [];
+      if(token === session?.access_token && Array.isArray(records) && records.length === 1)
+        adminLink.hidden = false;
+    } catch(_){}
+  }
   function displaySession() {
+    void updateAdminAccess();
     const signedIn = Boolean(session?.access_token);
     openBtn.hidden = signedIn;
     logoutBtn.hidden = !signedIn;
