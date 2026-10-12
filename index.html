@@ -94,7 +94,7 @@
     .price-label{font-size:11px;color:#8795a5;margin-bottom:5px}
     .price{font-size:22px;font-weight:900;color:#218667;direction:ltr;text-align:right}
     .price small{font-size:12px;color:#647588;font-weight:600}
-    .details{background:#eef6f1;border:0;color:#238364;border-radius:11px;padding:11px 14px;font-weight:800;font-size:12px;white-space:nowrap}
+    .details{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;background:#eef6f1;border:0;color:#238364;border-radius:11px;padding:11px 14px;font-weight:800;font-size:12px;white-space:nowrap}.details:focus-visible{outline:3px solid #238364;outline-offset:3px}.details-pending{opacity:.6;cursor:wait}
     .details:hover{background:#dcefe5}
     .note{background:#fff8e6;color:#7d662d;border:1px solid #f3e6ba;border-radius:12px;padding:13px 18px;font-size:12px;line-height:1.9;margin-bottom:42px}
     .empty{grid-column:1/-1;text-align:center;padding:70px 24px;background:#fff;border:1px dashed #ced8e2;border-radius:20px;color:#617186}
@@ -106,11 +106,6 @@
     .modal-head h3{margin:0;font-size:22px}
     .modal-head small{color:#9fb4ca;font-size:12px}
     .x-btn{border:0;background:#ffffff1b;border-radius:9px;color:#fff;font-size:23px;width:35px;height:35px;line-height:1}
-    .modal-details{padding:22px 27px 27px}
-    .detail-line{display:flex;justify-content:space-between;gap:10px;padding:13px 0;border-bottom:1px solid #ebeff3;font-size:14px}
-    .detail-line span{color:#778599}
-    .detail-line strong{color:#1c2e43}
-    .modal-tip{font-size:12px;color:#8a7650;background:#fff8e6;padding:11px 13px;border-radius:10px;margin-top:20px;line-height:1.8}
     @media(max-width:950px){.hero-copy{width:65%}.hero-decoration{left:-2%;width:45%;opacity:.75}.cars{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{flex-wrap:wrap}.search{width:100%}.filters{order:2}}
     @media(max-width:620px){.wrap{padding:0 16px}.topbar{height:72px}.nav{display:none}.top-pill{font-size:10px;padding:8px 10px}.top-pill{display:none}.auth-state{max-width:120px;font-size:10px}.auth-trigger,.auth-logout{padding:8px 10px;font-size:11px}.brand{font-size:18px}.brand-icon{width:38px;height:38px}.hero{margin-top:16px;min-height:335px;align-items:start;border-radius:20px}.hero-copy{width:100%;padding:28px 24px}.hero h1{font-size:31px;line-height:1.4}.hero p{font-size:12px;max-width:280px}.hero-decoration{width:84%;left:-7%;bottom:2px;opacity:.6}.hero-dots{display:none}.intro{padding-top:29px;align-items:start}h2{font-size:22px}.count{font-size:11px;padding:9px}.count strong{font-size:15px}.toolbar{margin-top:19px}.filters{width:100%;gap:6px}.filter{padding:11px 13px;font-size:12px;flex:1}.cars{grid-template-columns:1fr;gap:16px}.car-art{height:190px}.note{font-size:11px}}
   </style>
@@ -170,7 +165,6 @@
     <div class="note" id="about"><strong>تنبيه:</strong> هذه منصة تدريبية؛ الأسعار والمواصفات أمثلة توضيحية وليست عروض بيع أو مرجعًا رسميًا. صور السيارات فوتوغرافية للطراز أو الجيل المقابل؛ وقد تختلف سنة التصوير أو الفئة أو مواصفات السوق المحلي. <span id="source-indicator">يتم عرض بيانات تجريبية محلية.</span></div>
   </main>
   <footer>© <span id="year"></span> عالم السيارات — مشروع تدريبي</footer>
-  <dialog id="dialog" aria-labelledby="modal-title"><div class="modal-head"><div><small>بيانات السيارة</small><h3 id="modal-title"></h3></div><button class="x-btn" id="close" aria-label="إغلاق">×</button></div><div class="modal-details" id="modal-details"></div></dialog>
   <dialog id="auth-dialog" class="auth-dialog" aria-labelledby="auth-title"><div class="modal-head"><div><small>حساب المستخدم</small><h3 id="auth-title">عالم السيارات</h3></div><button type="button" class="x-btn" id="auth-close" aria-label="إغلاق نافذة الحساب">×</button></div><div class="auth-body"><div class="auth-tabs" role="group" aria-label="اختيار عملية الحساب"><button type="button" id="auth-tab-signup" class="active" aria-pressed="true">إنشاء حساب</button><button type="button" id="auth-tab-signin" aria-pressed="false">تسجيل الدخول</button></div><form id="auth-form"><label class="auth-field">البريد الإلكتروني<input id="auth-email" type="email" name="email" placeholder="example@gmail.com" autocomplete="email" required maxlength="254"></label><label class="auth-field">كلمة المرور<input id="auth-password" type="password" name="password" minlength="6" autocomplete="new-password" required></label><p class="auth-hint">استخدم بريدًا حقيقيًا لتصلك رسالة تأكيد الحساب إذا كان التأكيد مفعّلًا.</p><button type="submit" id="auth-submit" class="auth-submit">إنشاء حساب</button><p id="auth-feedback" class="auth-feedback" role="status" aria-live="polite"></p><button type="button" id="auth-resend" class="auth-resend" hidden>إعادة إرسال رابط تأكيد البريد</button></form></div></dialog>
   <script src="supabase-config.js"></script>
   <script>
@@ -197,7 +191,6 @@
     const carsEl = document.getElementById('cars');
     const countEl = document.getElementById('count');
     const searchEl = document.getElementById('search');
-    const dialog = document.getElementById('dialog');
     let cars = demos;
     let selectedCategory = 'all';
     const money = n => new Intl.NumberFormat('ar-SA').format(Number(n) || 0);
@@ -220,19 +213,18 @@
       const source = `https://commons.wikimedia.org/wiki/File:${filename}`;
       return `<img class="car-photo" src="${escapeHtml(image)}" data-fallback="${escapeHtml(fallback)}" alt="صورة ${escapeHtml(car.brand)} ${escapeHtml(car.model)} من الجيل الموافق للموديل" loading="lazy" decoding="async" referrerpolicy="no-referrer"><a class="photo-credit" href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer" title="المصور: ${escapeHtml(photo.credit)}؛ ${escapeHtml(photo.photographedModel)}؛ المصدر يبيّن ترخيص CC BY-SA 4.0">صورة: ${escapeHtml(photo.credit)} · CC BY-SA 4.0</a>`;
     }
+    const uuidFormat = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    function detailsAction(car){
+      const id=String(car.id||'');
+      if(!uuidFormat.test(id))return '<span class="details details-pending">جارٍ تحميل التفاصيل…</span>';
+      return '<a class="details" href="car.html?id='+encodeURIComponent(id)+'" aria-label="تفاصيل '+escapeHtml(car.brand)+' '+escapeHtml(car.model)+'">عرض التفاصيل ←</a>';
+    }
     function render(){
       const q = searchEl.value.trim().toLocaleLowerCase('ar');
       const visible = cars.filter(car => (selectedCategory === 'all' || car.category === selectedCategory) && `${car.brand} ${car.model} ${car.year} ${kinds[car.category]||''}`.toLocaleLowerCase('ar').includes(q));
       countEl.textContent = String(visible.length);
       if(!visible.length){ carsEl.innerHTML = '<div class="empty"><strong>لا توجد نتائج مطابقة</strong>جرّب اسم سيارة آخر أو غيّر نوع السيارة.</div>'; return; }
-      carsEl.innerHTML = visible.map(car => `<article class="car"><div class="car-art"><span class="tag">${escapeHtml(kinds[car.category]||'سيارة')}</span>${carPhoto(car)}</div><div class="car-body"><div class="car-maker">${escapeHtml(car.brand)}</div><h3 class="car-title">${escapeHtml(car.brand)} ${escapeHtml(car.model)}</h3><div class="specs"><span>◷ موديل ${escapeHtml(car.year)}</span><span>⚙ محرك ${escapeHtml(car.engine_liters)} لتر</span></div><div class="bottom"><div><div class="price-label">السعر التقريبي (تجريبي)</div><div class="price">${money(car.price_sar)} <small>ر.س</small></div></div><button class="details" data-id="${escapeHtml(car.id)}">عرض التفاصيل ←</button></div></div></article>`).join('');
-    }
-    function showDetails(car){
-      document.getElementById('modal-title').textContent = `${car.brand} ${car.model}`;
-      document.getElementById('modal-details').innerHTML = [
-        ['الشركة المصنعة',car.brand],['اسم السيارة',car.model],['الموديل',car.year],['حجم المحرك',`${car.engine_liters} لتر`],['نوع السيارة',kinds[car.category]||'سيارة'],['السعر التجريبي',`${money(car.price_sar)} ريال`]
-      ].map(([label,value]) => `<div class="detail-line"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')+'<div class="modal-tip">هذه معلومات تدريبية توضيحية، وليست مواصفات أو أسعارًا معتمدة.</div>';
-      dialog.showModal();
+      carsEl.innerHTML = visible.map(car => `<article class="car"><div class="car-art"><span class="tag">${escapeHtml(kinds[car.category]||'سيارة')}</span>${carPhoto(car)}</div><div class="car-body"><div class="car-maker">${escapeHtml(car.brand)}</div><h3 class="car-title">${escapeHtml(car.brand)} ${escapeHtml(car.model)}</h3><div class="specs"><span>◷ موديل ${escapeHtml(car.year)}</span><span>⚙ محرك ${escapeHtml(car.engine_liters)} لتر</span></div><div class="bottom"><div><div class="price-label">السعر التقريبي (تجريبي)</div><div class="price">${money(car.price_sar)} <small>ر.س</small></div></div>${detailsAction(car)}</div></div></article>`).join('');
     }
     document.querySelectorAll('.filter').forEach(btn => btn.addEventListener('click',() => {
       selectedCategory = btn.dataset.category;
@@ -240,7 +232,6 @@
       render();
     }));
     searchEl.addEventListener('input',render);
-    carsEl.addEventListener('click',event => { const button = event.target.closest('button[data-id]');if(!button)return; const car = cars.find(item => String(item.id) === button.dataset.id); if(car)showDetails(car); });
     // Retry via Wikimedia Commons when direct thumbnail delivery fails.
     carsEl.addEventListener('error',event => {
       const img = event.target;
@@ -260,8 +251,6 @@
         wrapper.append(msg);
       }
     },true);
-    document.getElementById('close').addEventListener('click',() => dialog.close());
-    dialog.addEventListener('click',event => {if(event.target === dialog) dialog.close();});
     document.getElementById('year').textContent = new Date().getFullYear();
     render();
     async function loadDatabase(){
