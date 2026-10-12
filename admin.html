@@ -34,6 +34,8 @@ button.danger{background:#fff1f0;color:#b0443a}
 .item .info{font-size:13px;color:#66768b;margin-bottom:12px}
 .item .buttons{display:flex;gap:10px}
 .help{font-size:12px;color:#66768b}
+.preview{max-height:170px;max-width:100%;object-fit:contain;border-radius:10px;background:#f2f5fa;border:1px solid #e3e9f0;padding:8px}
+.item-photo{width:100%;height:120px;object-fit:contain;background:#f5f7fb;border-radius:9px;margin-bottom:10px}
 @media(max-width:700px){form{grid-template-columns:repeat(2,minmax(0,1fr))}#list{grid-template-columns:1fr}}
 @media(max-width:440px){form{grid-template-columns:1fr}.panel{padding:17px}}
 </style>
@@ -55,10 +57,15 @@ button.danger{background:#fff1f0;color:#b0443a}
 <label>المحرك (لتر)<input id="engine" type="number" required min="0.1" max="99" step="0.1"></label>
 <label>السعر (ريال)<input id="price" type="number" required min="0" max="9999999999" step="0.01"></label>
 <label>نوع السيارة<select id="category"><option value="sedan">سيدان</option><option value="suv">دفع رباعي</option><option value="crossover">كروس أوفر</option></select></label>
-<label style="grid-column:1/-1">رابط صورة السيارة (اختياري)<input id="image-url" type="url" maxlength="2048" placeholder="https://example.com/car.jpg"></label>
+<label style="grid-column:1/-1">ارفع صورة من اللابتوب أو الجوال (اختياري)
+<input id="image-file" type="file" accept="image/jpeg,image/png,image/webp">
+<span class="help">JPG أو PNG أو WebP حتى 5 ميجابايت.</span></label>
+<label style="grid-column:1/-1">أو استخدم رابط صورة مباشر (اختياري)
+<input id="image-url" type="url" maxlength="2048" placeholder="https://example.com/car.jpg"></label>
+<img id="image-preview" class="preview" alt="معاينة صورة السيارة" hidden>
 <div class="actions"><button type="submit" id="save">حفظ السيارة</button><button type="button" class="secondary" id="cancel-edit">إلغاء التعديل</button></div>
 </form>
-<p class="help">ضع رابط صورة يبدأ بـ https://. إن تركته فارغًا، ستُعرض الصورة التجريبية للطراز إن كانت متوفرة.</p>
+<p class="help">عند اختيار ملف صورة ستكون له الأولوية على الرابط. إذا لم تضع صورة، تُعرض الصورة التجريبية إن وُجدت.</p>
 </div>
 <div class="panel"><h2>السيارات الموجودة (<span id="count">0</span>)</h2><div id="list"></div></div>
 </section>
