@@ -89,7 +89,7 @@ async function renew(){
  const payload=await r.json();saveSession(payload);
 }
 async function request(path,method='GET',body,extra={}){
- const send=()=>fetch(base+path,{method,headers:{apikey:key,Authorization:'Bearer '+session.access_token,Accept:'application/json',...(body===undefined?{}:{'Content-Type':'application/json'}),...extra},...(body===undefined?{}:{body:JSON.stringify(body)})});
+ const send=()=>fetch(base+path,{method,cache:method==='GET'?'no-store':'default',headers:{apikey:key,Authorization:'Bearer '+session.access_token,Accept:'application/json',...(body===undefined?{}:{'Content-Type':'application/json'}),...extra},...(body===undefined?{}:{body:JSON.stringify(body)})});
  let res=await send();
  if(res.status===401){await renew();res=await send()}
  const value=await res.json().catch(()=>null);
