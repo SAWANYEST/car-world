@@ -194,6 +194,28 @@ function values(){
  if(data.image_url && (!data.image_url.startsWith('https://')||new URL(data.image_url).protocol!=='https:'))throw Error('invalid_image');
  return data;
 }
+async function uploadCarPhoto(file){
+  const fileTypes={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+  const suffix=fileTypes[file?.type];
+  if(!suffix || !Number.isFinite(file.size) || file.size<1 || file.size>5242880)
+    throw Error('invalid_image_file');
+  const fileName='car-'+crypto.randomUUID()+'.'+suffix;
+  const response=await fetch(base+'/storage/v1/object/car-images/'+fileName,{
+    method:'POST',
+    headers:{
+      apikey:key,
+      Authorization:'Bearer '+session.access_token,
+      'Content-Type':file.type,
+      'x-upsert':'false'
+    },
+    body:file
+  });
+  if(!response.ok){
+    const details=await response.json().catch(()=>({}));
+    throw Error('upload_failed_'+response.status+': '+String(details.message||details.error||'').slice(0,120));
+  }
+  return base+'/storage/v1/object/public/car-images/'+fileName;
+}
 form.addEventListener('submit',async e=>{
  e.preventDefault();
  if(busy)return;
