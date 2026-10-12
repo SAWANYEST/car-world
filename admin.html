@@ -223,11 +223,26 @@ form.addEventListener('submit',async e=>{
    message('أكمل الحقول المطلوبة وصحح القيم التي يشير إليها المتصفح، ثم اضغط حفظ التعديلات.',true);
    return;
  }
- let data;try{data=values()}catch(_){message('راجع بيانات السيارة ورابط الصورة قبل الحفظ.',true);return}
+ let data;
+ try{
+   data=values();
+   const file=imageFile.files?.[0];
+   if(file && (!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size<1||file.size>5242880))
+     throw Error('invalid_image_file');
+ }catch(err){
+   message(String(err.message).includes('invalid_image_file')?'اختر صورة JPG أو PNG أو WebP لا تتجاوز 5 ميجابايت.':'راجع بيانات السيارة ورابط الصورة قبل الحفظ.',true);
+   return;
+ }
  const id=get('id').value;
  if(id&&!uuidFormat.test(id)){message('معرّف السيارة غير صحيح.',true);return}
  busy=true;document.getElementById('save').disabled=true;message('جارٍ حفظ البيانات...');
  try{
+   const file=imageFile.files?.[0];
+   if(file){
+     message('جارٍ رفع صورة السيارة إلى الموقع...');
+     data.image_url=await uploadCarPhoto(file);
+   }
+   message('جارٍ حفظ السيارة...');
    const path='/rest/v1/cars'+(id?'?id=eq.'+encodeURIComponent(id):'');
    const updated=await request(path,id?'PATCH':'POST',data,{Prefer:'return=representation'});
    if(!Array.isArray(updated)||updated.length!==1||!uuidFormat.test(String(updated[0]?.id))||(id&&updated[0].id!==id)){
@@ -236,7 +251,7 @@ form.addEventListener('submit',async e=>{
    await load();resetEditor();message(id?'تم تعديل بيانات السيارة وحفظها في قاعدة البيانات.':'تمت إضافة السيارة وحفظها في قاعدة البيانات.');
  }catch(err){
    const code=String(err?.message||'');
-   message(code.includes('no_rows_affected')?'لم يُحفظ أي تغيير. أعد تحميل لوحة الإدارة ثم حاول مجددًا.':code.includes('request_failed_')?'رفضت قاعدة البيانات الحفظ: '+code:'تعذر حفظ السيارة. تأكد من جميع الحقول ورابط الصورة وصلاحية الدخول.',true);
+   message(code.includes('no_rows_affected')?'لم يُحفظ أي تغيير. أعد تحميل لوحة الإدارة ثم حاول مجددًا.':code.includes('upload_failed_')?'تعذر رفع الصورة: '+code:code.includes('request_failed_')?'رفضت قاعدة البيانات الحفظ: '+code:'تعذر حفظ السيارة. تحقق من الصورة (JPG/PNG/WebP وحجم 5 ميجابايت) والبيانات وصلاحية الدخول.',true);
  }
  finally{busy=false;document.getElementById('save').disabled=false}
 });
