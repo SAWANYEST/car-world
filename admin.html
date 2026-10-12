@@ -93,7 +93,10 @@ async function request(path,method='GET',body,extra={}){
  let res=await send();
  if(res.status===401){await renew();res=await send()}
  const value=await res.json().catch(()=>null);
- if(!res.ok)throw Error('request_failed_'+res.status);
+ if(!res.ok){
+   const detail=typeof value?.message==='string'?value.message:typeof value?.hint==='string'?value.hint:'';
+   throw Error('request_failed_'+res.status+(detail?': '+detail.slice(0,250):''));
+ }
  return value;
 }
 async function setup(){
@@ -148,23 +151,42 @@ function values(){
 }
 form.addEventListener('submit',async e=>{
  e.preventDefault();
- if(busy||!form.reportValidity())return;
+ if(busy)return;
+ if(!form.reportValidity()){
+   message('أكمل الحقول المطلوبة وصحح القيم التي يشير إليها المتصفح، ثم اضغط حفظ التعديلات.',true);
+   return;
+ }
  let data;try{data=values()}catch(_){message('راجع بيانات السيارة ورابط الصورة قبل الحفظ.',true);return}
  const id=get('id').value;
  if(id&&!uuidFormat.test(id)){message('معرّف السيارة غير صحيح.',true);return}
  busy=true;document.getElementById('save').disabled=true;message('جارٍ حفظ البيانات...');
  try{
    const path='/rest/v1/cars'+(id?'?id=eq.'+encodeURIComponent(id):'');
-   await request(path,id?'PATCH':'POST',data,{Prefer:'return=minimal'});
-   reset();await load();message(id?'تم تحديث السيارة بنجاح.':'تمت إضافة السيارة بنجاح.');
- }catch(_){message('تعذر حفظ السيارة. تأكد من صلاحيات حساب المدير وعدم تكرار الاسم والموديل والسنة.',true)}
+   const updated=await request(path,id?'PATCH':'POST',data,{Prefer:'return=representation'});
+   if(!Array.isArray(updated)||updated.length!==1||!uuidFormat.test(String(updated[0]?.id))||(id&&updated[0].id!==id)){
+     throw Error('no_rows_affected');
+   }
+   await load();reset();message(id?'تم تعديل بيانات السيارة وحفظها في قاعدة البيانات.':'تمت إضافة السيارة وحفظها في قاعدة البيانات.');
+ }catch(err){
+   const code=String(err?.message||'');
+   message(code.includes('no_rows_affected')?'لم يُحفظ أي تغيير. أعد تحميل لوحة الإدارة ثم حاول مجددًا.':code.includes('request_failed_')?'رفضت قاعدة البيانات الحفظ: '+code:'تعذر حفظ السيارة. تأكد من جميع الحقول ورابط الصورة وصلاحية الدخول.',true);
+ }
  finally{busy=false;document.getElementById('save').disabled=false}
 });
 async function deleteCar(car){
  if(busy||!uuidFormat.test(String(car.id))||!confirm('هل تريد حذف '+car.brand+' '+car.model+'؟'))return;
  busy=true;message('جارٍ حذف السيارة...');
- try{await request('/rest/v1/cars?id=eq.'+encodeURIComponent(car.id),'DELETE',undefined,{Prefer:'return=minimal'});reset();await load();message('تم حذف السيارة.')}
- catch(_){message('تعذر الحذف. تحقق من صلاحية الإدارة.',true)}
+ try{
+   const removed=await request('/rest/v1/cars?id=eq.'+encodeURIComponent(car.id),'DELETE',undefined,{Prefer:'return=representation'});
+   if(!Array.isArray(removed)||removed.length!==1||removed[0]?.id!==car.id){
+     throw Error('no_rows_affected');
+   }
+   await load();reset();message('تم حذف '+car.brand+' '+car.model+' من قاعدة البيانات بنجاح.');
+ }
+ catch(err){
+   const code=String(err?.message||'');
+   message(code.includes('no_rows_affected')?'السيارة غير موجودة الآن أو لم تُحذف. أعد تحميل القائمة وتأكد من اختيار السيارة الصحيحة.':code.includes('request_failed_')?'رفضت قاعدة البيانات الحذف: '+code:'تعذر الحذف. تأكد من الاتصال وصلاحية حساب المدير.',true);
+ }
  finally{busy=false}
 }
 setup();
