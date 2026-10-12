@@ -56,7 +56,7 @@ button.danger{background:#fff1f0;color:#b0443a}
 <label>السعر (ريال)<input id="price" type="number" required min="0" max="9999999999" step="0.01"></label>
 <label>نوع السيارة<select id="category"><option value="sedan">سيدان</option><option value="suv">دفع رباعي</option><option value="crossover">كروس أوفر</option></select></label>
 <label style="grid-column:1/-1">رابط صورة السيارة (اختياري)<input id="image-url" type="url" maxlength="2048" placeholder="https://example.com/car.jpg"></label>
-<div class="actions"><button type="submit" id="save">حفظ السيارة</button><button type="button" class="secondary" id="reset">إلغاء التعديل</button></div>
+<div class="actions"><button type="submit" id="save">حفظ السيارة</button><button type="button" class="secondary" id="cancel-edit">إلغاء التعديل</button></div>
 </form>
 <p class="help">ضع رابط صورة يبدأ بـ https://. إن تركته فارغًا، ستُعرض الصورة التجريبية للطراز إن كانت متوفرة.</p>
 </div>
@@ -141,8 +141,17 @@ function editCar(car){
  document.getElementById('save').textContent='حفظ التعديلات';
  form.scrollIntoView({behavior:'smooth',block:'start'});
 }
-function reset(){form.reset();get('id').value='';document.getElementById('form-title').textContent='إضافة سيارة';document.getElementById('save').textContent='حفظ السيارة'}
-document.getElementById('reset').addEventListener('click',reset);
+function resetEditor(){
+  form.reset();
+  get('id').value='';
+  document.getElementById('form-title').textContent='إضافة سيارة';
+  document.getElementById('save').textContent='حفظ السيارة';
+}
+document.getElementById('cancel-edit').addEventListener('click',()=>{
+  if(busy)return;
+  resetEditor();
+  message('تم إلغاء التعديل. يمكنك الآن إضافة سيارة جديدة.');
+});
 function values(){
  const data={brand:get('brand').value.trim(),model:get('model').value.trim(),year:Number(get('year').value),engine_liters:Number(get('engine_liters').value),price_sar:Number(get('price_sar').value),category:get('category').value,image_url:get('image_url').value.trim()||null};
  if(!data.brand||!data.model||data.brand.length>80||data.model.length>80||!Number.isInteger(data.year)||data.year<1950||data.year>2100||!Number.isFinite(data.engine_liters)||data.engine_liters<=0||!Number.isFinite(data.price_sar)||data.price_sar<0||!['sedan','suv','crossover'].includes(data.category))throw Error('invalid_form');
@@ -166,7 +175,7 @@ form.addEventListener('submit',async e=>{
    if(!Array.isArray(updated)||updated.length!==1||!uuidFormat.test(String(updated[0]?.id))||(id&&updated[0].id!==id)){
      throw Error('no_rows_affected');
    }
-   await load();reset();message(id?'تم تعديل بيانات السيارة وحفظها في قاعدة البيانات.':'تمت إضافة السيارة وحفظها في قاعدة البيانات.');
+   await load();resetEditor();message(id?'تم تعديل بيانات السيارة وحفظها في قاعدة البيانات.':'تمت إضافة السيارة وحفظها في قاعدة البيانات.');
  }catch(err){
    const code=String(err?.message||'');
    message(code.includes('no_rows_affected')?'لم يُحفظ أي تغيير. أعد تحميل لوحة الإدارة ثم حاول مجددًا.':code.includes('request_failed_')?'رفضت قاعدة البيانات الحفظ: '+code:'تعذر حفظ السيارة. تأكد من جميع الحقول ورابط الصورة وصلاحية الدخول.',true);
@@ -181,7 +190,7 @@ async function deleteCar(car){
    if(!Array.isArray(removed)||removed.length!==1||removed[0]?.id!==car.id){
      throw Error('no_rows_affected');
    }
-   await load();reset();message('تم حذف '+car.brand+' '+car.model+' من قاعدة البيانات بنجاح.');
+   await load();resetEditor();message('تم حذف '+car.brand+' '+car.model+' من قاعدة البيانات بنجاح.');
  }
  catch(err){
    const code=String(err?.message||'');
