@@ -302,7 +302,7 @@
   const signUpTab = document.getElementById('auth-tab-signup');
   const signInTab = document.getElementById('auth-tab-signin');
   const storeKey = `car-world-auth-session:${base}`;
-  let mode = 'signup';
+  let mode = 'signin';
   let session = null;
   let busy = false;
 
@@ -429,14 +429,48 @@
       }
     } catch (_) { clearSession(); }
   }
+  async function receiveConfirmationRedirect() {
+    const hash = String(window.location.hash || '').replace(/^#/, '');
+    if (!hash.includes('=')) return false;
+    const params = new URLSearchParams(hash);
+    if (!params.has('access_token') && !params.has('error') && !params.has('error_code')) return false;
+    // Never leave tokens from an email confirmation in the address bar or browser history.
+    try { window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search); }
+    catch (_) { window.location.hash = ''; }
+    setMode('signin');
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    if (!accessToken || !refreshToken) {
+      if (!dialog.open) dialog.showModal();
+      message(friendlyError(new Error(params.get('error_code') || params.get('error') || 'otp_expired')), true);
+      return true;
+    }
+    try {
+      // Only accept a session after Supabase validates the token and identifies the user.
+      const user = await authRequest('user', undefined, accessToken);
+      if (!user || typeof user.email !== 'string') throw new Error('invalid_session');
+      saveSession({access_token:accessToken, refresh_token:refreshToken,
+        expires_in:Number(params.get('expires_in') || 3600), user}, user.email);
+      if (dialog.open) dialog.close();
+    } catch (_) {
+      clearSession();
+      if (!dialog.open) dialog.showModal();
+      message('تم فتح رابط التأكيد، لكن تعذر بدء الجلسة تلقائيًا. سجّل الدخول بالبريد وكلمة المرور اللذين اخترتهما عند التسجيل.', true);
+    }
+    return true;
+  }
   if (!configured) {
     openBtn.disabled = true;
     openBtn.title = 'تحتاج المنصة إلى إعداد اتصال Supabase أولًا';
     return;
   }
   displaySession();
-  restoreSession();
-  openBtn.addEventListener('click', () => { setMode('signup'); form.reset(); dialog.showModal(); email.focus(); });
+  setMode('signin');
+  void (async () => {
+    const callbackHandled = await receiveConfirmationRedirect();
+    if (!callbackHandled) await restoreSession();
+  })();
+  openBtn.addEventListener('click', () => { setMode('signin'); form.reset(); dialog.showModal(); email.focus(); });
   document.getElementById('auth-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog && !busy) dialog.close(); });
   dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
@@ -460,8 +494,9 @@
         dialog.close();
       } else if (mode === 'signup') {
         password.value = '';
-        resendBtn.hidden = false;
-        message('تم طلب رسالة التأكيد. افتح أحدث رسالة من Supabase واضغط رابط التأكيد، ثم اختر تسجيل الدخول.');
+        setMode('signin');
+        email.value = address;
+        message('إذا وصلك رابط تأكيد، افتحه مرة واحدة. إذا أكّدت بريدك مسبقًا، سجّل الدخول الآن بنفس البريد وكلمة المرور؛ لا تنشئ حسابًا ثانيًا.');
       } else {
         message('لم تكتمل عملية تسجيل الدخول.', true);
       }
