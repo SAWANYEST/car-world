@@ -83,6 +83,27 @@ const list = document.getElementById('list');
 const form = document.getElementById('car-form');
 const ids = {id:'car-id',brand:'brand',model:'model',year:'year',engine_liters:'engine',price_sar:'price',category:'category',image_url:'image-url'};
 const get = field => document.getElementById(ids[field]);
+const imageFile = document.getElementById('image-file');
+const imagePreview = document.getElementById('image-preview');
+let localPreviewUrl = '';
+function updateImagePreview(){
+  if(localPreviewUrl){URL.revokeObjectURL(localPreviewUrl);localPreviewUrl=''}
+  const file = imageFile.files?.[0];
+  const url = get('image_url').value.trim();
+  if(file && ['image/jpeg','image/png','image/webp'].includes(file.type)){
+    localPreviewUrl = URL.createObjectURL(file);
+    imagePreview.src = localPreviewUrl;
+    imagePreview.hidden = false;
+  } else if(/^https:\/\/\S+$/i.test(url)){
+    imagePreview.src = url;
+    imagePreview.hidden = false;
+  } else {
+    imagePreview.hidden = true;
+    imagePreview.removeAttribute('src');
+  }
+}
+imageFile.addEventListener('change',updateImagePreview);
+get('image_url').addEventListener('input',updateImagePreview);
 const storeKey = 'car-world-auth-session:' + base;
 let session = null, cars = [], busy = false, verifiedUserId = '';
 const uuidFormat = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -136,6 +157,11 @@ async function load(){
    const card=document.createElement('div');card.className='item';
    const name=document.createElement('strong');name.textContent=(car.brand||'')+' '+(car.model||'');
    const info=document.createElement('div');info.className='info';info.textContent='موديل '+car.year+' · محرك '+car.engine_liters+' لتر · '+new Intl.NumberFormat('ar-SA').format(Number(car.price_sar))+' ريال';
+   if(typeof car.image_url==='string' && /^https:\/\/\S+$/i.test(car.image_url)){
+     const img=document.createElement('img');
+     img.className='item-photo';img.src=car.image_url;img.alt='صورة '+car.brand+' '+car.model;img.loading='lazy';
+     card.append(img);
+   }
    const actions=document.createElement('div');actions.className='buttons';
    const edit=document.createElement('button');edit.type='button';edit.textContent='تعديل';edit.className='secondary';edit.addEventListener('click',()=>editCar(car));
    const del=document.createElement('button');del.type='button';del.textContent='حذف';del.className='danger';del.addEventListener('click',()=>deleteCar(car));
@@ -144,12 +170,15 @@ async function load(){
 }
 function editCar(car){
  for(const field of ['id','brand','model','year','engine_liters','price_sar','category','image_url'])get(field).value=car[field]??'';
+ imageFile.value='';
+ updateImagePreview();
  document.getElementById('form-title').textContent='تعديل سيارة: '+car.brand+' '+car.model;
  document.getElementById('save').textContent='حفظ التعديلات';
  form.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function resetEditor(){
   form.reset();
+  updateImagePreview();
   get('id').value='';
   document.getElementById('form-title').textContent='إضافة سيارة';
   document.getElementById('save').textContent='حفظ السيارة';
