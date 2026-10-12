@@ -271,7 +271,7 @@
       if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) || !key) return;
       const label = document.getElementById('source-indicator');
       try{
-        const response = await fetch(`${url}/rest/v1/cars?select=id,brand,model,year,engine_liters,price_sar,category,color,image_url&order=created_at.desc`, {headers:{apikey:key,Accept:'application/json'}});
+        const response = await fetch(`${url}/rest/v1/cars?select=id,brand,model,year,engine_liters,price_sar,category,color,image_url&order=created_at.desc`, {cache:'no-store',headers:{apikey:key,Accept:'application/json'}});
         if(!response.ok) throw new Error(`Supabase HTTP ${response.status}`);
         const result = await response.json();
         if(!Array.isArray(result)) throw new Error('Unexpected response');
@@ -280,7 +280,9 @@
         render();
       } catch(error){
         console.error('تعذر تحميل السيارات من Supabase:',error);
-        label.textContent = 'تعذر الاتصال بقاعدة البيانات، ولذلك تُعرض بيانات تجريبية.';
+        cars = [];
+        render();
+        label.textContent = 'تعذر تحميل السيارات من قاعدة البيانات الآن. أعد تحديث الصفحة؛ لم تُعرض بيانات قديمة بدل البيانات الحقيقية.';
       }
     }
     loadDatabase();
