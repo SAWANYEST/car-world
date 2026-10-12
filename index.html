@@ -25,10 +25,13 @@
     .top-pill{color:#396250;background:#e8f7ee;border:1px solid #d3efdc;border-radius:22px;padding:10px 16px;font-size:12px;font-weight:700}
     [hidden]{display:none!important}
     .header-actions{display:flex;align-items:center;gap:9px;min-width:0}
+
     .admin-link{background:#e8f7ee;color:#176247;border:1px solid #d6e4dc;padding:10px 13px;border-radius:11px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap}
     .auth-trigger,.auth-logout{border:1px solid #d6e4dc;background:#eaf7ee;color:#176247;padding:10px 13px;border-radius:11px;font-weight:800;font-size:12px;white-space:nowrap}
     .auth-logout{border-color:#e1e7ee;color:#485b6d;background:#fff}
     .auth-state{color:#536579;font-size:12px;max-width:185px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right}
+    .auth-resend{background:transparent;color:#1a735a;border:0;padding:10px;font-size:13px;font-weight:bold;text-decoration:underline;display:block;margin:8px auto 0}
+    .auth-resend[hidden]{display:none}
     .auth-body{padding:24px 26px 28px}
     .auth-tabs{display:flex;gap:8px;margin-bottom:18px}
     .auth-tabs button{flex:1;border:1px solid #e0e7ee;background:#fff;color:#617184;border-radius:10px;padding:12px 8px;font-size:13px;font-weight:700}
@@ -168,7 +171,7 @@
   </main>
   <footer>© <span id="year"></span> عالم السيارات — مشروع تدريبي</footer>
   <dialog id="dialog" aria-labelledby="modal-title"><div class="modal-head"><div><small>بيانات السيارة</small><h3 id="modal-title"></h3></div><button class="x-btn" id="close" aria-label="إغلاق">×</button></div><div class="modal-details" id="modal-details"></div></dialog>
-  <dialog id="auth-dialog" class="auth-dialog" aria-labelledby="auth-title"><div class="modal-head"><div><small>حساب المستخدم</small><h3 id="auth-title">عالم السيارات</h3></div><button type="button" class="x-btn" id="auth-close" aria-label="إغلاق نافذة الحساب">×</button></div><div class="auth-body"><div class="auth-tabs" role="group" aria-label="اختيار عملية الحساب"><button type="button" id="auth-tab-signup" class="active" aria-pressed="true">إنشاء حساب</button><button type="button" id="auth-tab-signin" aria-pressed="false">تسجيل الدخول</button></div><form id="auth-form"><label class="auth-field">البريد الإلكتروني<input id="auth-email" type="email" name="email" placeholder="example@gmail.com" autocomplete="email" required maxlength="254"></label><label class="auth-field">كلمة المرور<input id="auth-password" type="password" name="password" minlength="6" autocomplete="new-password" required></label><p class="auth-hint">استخدم بريدًا حقيقيًا لتصلك رسالة تأكيد الحساب إذا كان التأكيد مفعّلًا.</p><button type="submit" id="auth-submit" class="auth-submit">إنشاء حساب</button><p id="auth-feedback" class="auth-feedback" role="status" aria-live="polite"></p></form></div></dialog>
+  <dialog id="auth-dialog" class="auth-dialog" aria-labelledby="auth-title"><div class="modal-head"><div><small>حساب المستخدم</small><h3 id="auth-title">عالم السيارات</h3></div><button type="button" class="x-btn" id="auth-close" aria-label="إغلاق نافذة الحساب">×</button></div><div class="auth-body"><div class="auth-tabs" role="group" aria-label="اختيار عملية الحساب"><button type="button" id="auth-tab-signup" class="active" aria-pressed="true">إنشاء حساب</button><button type="button" id="auth-tab-signin" aria-pressed="false">تسجيل الدخول</button></div><form id="auth-form"><label class="auth-field">البريد الإلكتروني<input id="auth-email" type="email" name="email" placeholder="example@gmail.com" autocomplete="email" required maxlength="254"></label><label class="auth-field">كلمة المرور<input id="auth-password" type="password" name="password" minlength="6" autocomplete="new-password" required></label><p class="auth-hint">استخدم بريدًا حقيقيًا لتصلك رسالة تأكيد الحساب إذا كان التأكيد مفعّلًا.</p><button type="submit" id="auth-submit" class="auth-submit">إنشاء حساب</button><p id="auth-feedback" class="auth-feedback" role="status" aria-live="polite"></p><button type="button" id="auth-resend" class="auth-resend" hidden>إعادة إرسال رابط تأكيد البريد</button></form></div></dialog>
   <script src="supabase-config.js"></script>
   <script>
   (() => {
@@ -295,17 +298,18 @@
   const openBtn = document.getElementById('auth-open');
   const logoutBtn = document.getElementById('auth-logout');
   const stateEl = document.getElementById('auth-state');
+  const adminLink = document.getElementById('admin-link');
   const dialog = document.getElementById('auth-dialog');
   const form = document.getElementById('auth-form');
   const email = document.getElementById('auth-email');
   const password = document.getElementById('auth-password');
   const feedback = document.getElementById('auth-feedback');
   const submit = document.getElementById('auth-submit');
+  const resendBtn = document.getElementById('auth-resend');
   const signUpTab = document.getElementById('auth-tab-signup');
   const signInTab = document.getElementById('auth-tab-signin');
   const storeKey = `car-world-auth-session:${base}`;
-  const adminLink = document.getElementById('admin-link');
-  let mode = 'signup';
+  let mode = 'signin';
   let session = null;
   let busy = false;
 
@@ -316,6 +320,7 @@
   const setBusy = value => {
     busy = value;
     submit.disabled = value;
+    resendBtn.disabled = value;
     signUpTab.disabled = value;
     signInTab.disabled = value;
     logoutBtn.disabled = value;
@@ -324,6 +329,7 @@
   function setMode(next) {
     if (busy) return;
     mode = next;
+    resendBtn.hidden = mode !== 'signin';
     signUpTab.setAttribute('aria-pressed', String(mode === 'signup'));
     signInTab.setAttribute('aria-pressed', String(mode === 'signin'));
     signUpTab.classList.toggle('active', mode === 'signup');
@@ -371,16 +377,29 @@
     displaySession();
   }
   function friendlyError(error) {
-    if (error === 'invalid_credentials' || error === 'invalid_grant') return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
-    if (error === 'email_not_confirmed') return 'يرجى تأكيد البريد الإلكتروني قبل تسجيل الدخول.';
-    if (error === 'weak_password') return 'كلمة المرور ضعيفة. اختر كلمة أقوى.';
-    if (error === 'user_already_exists') return 'هذا البريد مسجل مسبقًا. اختر تسجيل الدخول.';
-    if (error === 'email_address_invalid') return 'يرجى كتابة بريد إلكتروني صحيح.';
-    if (error === 'over_email_send_rate_limit' || error === 'over_request_rate_limit' || error === 'rate_limit_exceeded') return 'محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.';
-    return 'تعذرت العملية. تحقق من اتصال الإنترنت وحاول مرة أخرى.';
+    const code = String(error?.message || error || '').toLowerCase();
+    const details = String(error?.serverMessage || '').toLowerCase();
+    const status = Number(error?.status || 0);
+    if (status === 429 || code.includes('rate_limit') || details.includes('rate limit'))
+      return 'طلبات كثيرة خلال وقت قصير. انتظر عدة دقائق قبل إعادة إرسال رابط التأكيد.';
+    if (code.includes('email_not_confirmed') || details.includes('email not confirmed'))
+      return 'البريد لم يُؤكَّد بعد. اضغط «إعادة إرسال رابط تأكيد البريد»، ثم افتح الرسالة الجديدة من Supabase.';
+    if (code.includes('invalid_credentials') || code.includes('invalid_grant') || details.includes('invalid login credentials'))
+      return 'البريد الإلكتروني أو كلمة المرور غير صحيحة. رمز تأكيد البريد ليس كلمة المرور؛ استخدم كلمة المرور التي أنشأت بها حسابك.';
+    if (code.includes('weak_password')) return 'كلمة المرور ضعيفة. اختر كلمة مرور أقوى.';
+    if (code.includes('user_already_exists') || code.includes('email_exists')) return 'هذا البريد مسجّل مسبقًا. اختر تسجيل الدخول بدل إنشاء حساب جديد.';
+    if (code.includes('email_address_invalid')) return 'البريد الإلكتروني غير صحيح.';
+    if (code.includes('otp_expired') || code.includes('otp_disabled'))
+      return 'رابط التأكيد القديم لم يعد صالحًا. اطلب رسالة تأكيد جديدة.';
+    if (code === 'network_error')
+      return 'تعذر الاتصال بخدمة Supabase. أعد تحميل الصفحة وحاول لاحقًا.';
+    if (status >= 500) return 'خدمة تسجيل الدخول تواجه مشكلة مؤقتة. حاول لاحقًا.';
+    if (status) return 'رفض Supabase العملية (خطأ ' + status + '). تأكد من البريد وكلمة المرور أو من رسالة التأكيد.';
+    return 'لم تكتمل العملية. راجع رسالة تأكيد بريدك ثم أعد المحاولة.';
   }
   async function authRequest(path, body, bearer = '') {
-    const response = await fetch(`${base}/auth/v1/${path}`, {
+    let response;
+    try { response = await fetch(`${base}/auth/v1/${path}`, {
       method: body === undefined ? 'GET' : 'POST',
       headers: {
         apikey: apiKey,
@@ -389,12 +408,14 @@
         ...(bearer ? {Authorization: `Bearer ${bearer}`} : {})
       },
       ...(body === undefined ? {} : {body: JSON.stringify(body)})
-    });
+    }); }
+    catch (_) { throw new Error('network_error'); }
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const reason = String(payload.code || payload.error_code || payload.error || 'request_failed');
+      const reason = String(payload.error_code || payload.code || payload.error || 'request_failed');
       const problem = new Error(reason);
       problem.status = response.status;
+      problem.serverMessage = String(payload.message || payload.msg || payload.error_description || '');
       throw problem;
     }
     return payload;
@@ -429,14 +450,48 @@
       }
     } catch (_) { clearSession(); }
   }
+  async function receiveConfirmationRedirect() {
+    const hash = String(window.location.hash || '').replace(/^#/, '');
+    if (!hash.includes('=')) return false;
+    const params = new URLSearchParams(hash);
+    if (!params.has('access_token') && !params.has('error') && !params.has('error_code')) return false;
+    // Never leave tokens from an email confirmation in the address bar or browser history.
+    try { window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search); }
+    catch (_) { window.location.hash = ''; }
+    setMode('signin');
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    if (!accessToken || !refreshToken) {
+      if (!dialog.open) dialog.showModal();
+      message(friendlyError(new Error(params.get('error_code') || params.get('error') || 'otp_expired')), true);
+      return true;
+    }
+    try {
+      // Only accept a session after Supabase validates the token and identifies the user.
+      const user = await authRequest('user', undefined, accessToken);
+      if (!user || typeof user.email !== 'string') throw new Error('invalid_session');
+      saveSession({access_token:accessToken, refresh_token:refreshToken,
+        expires_in:Number(params.get('expires_in') || 3600), user}, user.email);
+      if (dialog.open) dialog.close();
+    } catch (_) {
+      clearSession();
+      if (!dialog.open) dialog.showModal();
+      message('تم فتح رابط التأكيد، لكن تعذر بدء الجلسة تلقائيًا. سجّل الدخول بالبريد وكلمة المرور اللذين اخترتهما عند التسجيل.', true);
+    }
+    return true;
+  }
   if (!configured) {
     openBtn.disabled = true;
     openBtn.title = 'تحتاج المنصة إلى إعداد اتصال Supabase أولًا';
     return;
   }
   displaySession();
-  restoreSession();
-  openBtn.addEventListener('click', () => { setMode('signup'); form.reset(); dialog.showModal(); email.focus(); });
+  setMode('signin');
+  void (async () => {
+    const callbackHandled = await receiveConfirmationRedirect();
+    if (!callbackHandled) await restoreSession();
+  })();
+  openBtn.addEventListener('click', () => { setMode('signin'); form.reset(); dialog.showModal(); email.focus(); });
   document.getElementById('auth-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog && !busy) dialog.close(); });
   dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
@@ -460,12 +515,39 @@
         dialog.close();
       } else if (mode === 'signup') {
         password.value = '';
-        message('افتح بريدك الإلكتروني لتأكيد الحساب، ثم ارجع هنا واختر تسجيل الدخول.');
+        setMode('signin');
+        email.value = address;
+        message('إذا وصلك رابط تأكيد، افتحه مرة واحدة. إذا أكّدت بريدك مسبقًا، سجّل الدخول الآن بنفس البريد وكلمة المرور؛ لا تنشئ حسابًا ثانيًا.');
       } else {
         message('لم تكتمل عملية تسجيل الدخول.', true);
       }
     } catch (err) {
-      message(friendlyError(err.message), true);
+      message(friendlyError(err), true);
+    } finally {
+      setBusy(false);
+    }
+  });
+  let lastResend = 0;
+  resendBtn.addEventListener('click', async () => {
+    if (busy) return;
+    const address = email.value.trim();
+    if (!address || !email.checkValidity()) {
+      message('اكتب بريدك الإلكتروني الصحيح أولًا لإعادة إرسال رابط التأكيد.', true);
+      email.focus();
+      return;
+    }
+    if (Date.now() - lastResend < 60000) {
+      message('انتظر دقيقة قبل طلب رسالة تأكيد أخرى.', true);
+      return;
+    }
+    lastResend = Date.now();
+    setBusy(true);
+    message('جارٍ طلب رابط التأكيد...');
+    try {
+      await authRequest('resend', {type:'signup', email:address});
+      message('تم طلب رسالة التأكيد. افحص بريدك والرسائل غير المرغوبة، واضغط الرابط في أحدث رسالة.');
+    } catch (err) {
+      message(friendlyError(err), true);
     } finally {
       setBusy(false);
     }
