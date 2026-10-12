@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1728">
+<meta name="description" content="تفاصيل السيارات في مشروع عالم السيارات التعليمي">
+<title>تفاصيل السيارة | عالم السيارات</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;background:#f5f7fa;color:#142239}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1120px;margin:auto;padding:0 24px}
+header{background:#fff;border-bottom:1px solid #e6ebf1}
+nav{display:flex;align-items:center;justify-content:space-between;min-height:78px;gap:16px}
+.logo{font-size:22px;font-weight:900}
+.logo small{display:block;direction:ltr;font-size:10px;font-weight:400;letter-spacing:2px;color:#8091a7;text-align:right}
+.back{border:1px solid #d9e2ec;border-radius:11px;background:#f5f8fb;padding:12px 16px;font-size:13px;font-weight:700}
+main{padding:40px 0 65px}
+.breadcrumb{color:#6b7d90;font-size:13px;margin-bottom:20px}
+.status{background:#fff;border:1px solid #e3e9f0;padding:22px;border-radius:14px;color:#637489}
+.status.error{color:#b43838;background:#fff6f5;border-color:#ffd3ce}
+.card{display:grid;grid-template-columns:1.15fr 1fr;gap:28px;align-items:start}
+.photo-panel,.info-panel{background:#fff;border:1px solid #e3e9f0;border-radius:22px;overflow:hidden;box-shadow:0 6px 24px #152d4710}
+.photo-area{min-height:390px;background:linear-gradient(145deg,#eaf0f5,#fff);display:flex;align-items:center;justify-content:center;position:relative;padding:22px}
+.photo-area img{display:block;width:100%;max-height:420px;object-fit:contain}
+.no-photo{font-size:17px;color:#8798ab;text-align:center}
+.photo-credit{display:block;padding:13px 18px;font-size:11px;color:#61798d}
+.info-panel{padding:30px}
+.kicker{font-size:12px;font-weight:800;letter-spacing:1px;color:#23805d;margin-bottom:8px}
+h1{font-size:31px;line-height:1.5;margin:0 0 8px}
+.subtitle{font-size:14px;color:#6b7d90;margin:0 0 24px}
+.price-box{background:#f0f8f3;border:1px solid #deeee2;border-radius:15px;padding:18px 20px;margin-bottom:23px}
+.price-box small{display:block;color:#527363;font-size:12px;margin-bottom:5px}
+.price{font-size:29px;font-weight:900;color:#206444}
+.price span{font-size:14px}
+h2{font-size:18px;margin:0 0 15px}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.spec{border:1px solid #e8edf3;border-radius:12px;padding:14px;background:#fcfdfe}
+.spec .label{display:block;color:#8291a1;font-size:12px;margin-bottom:9px}
+.spec .value{font-weight:800;font-size:15px}
+.tip{border-right:3px solid #edc56d;background:#fffaed;padding:12px 15px;color:#76684a;font-size:12px;line-height:1.9;margin-top:22px;border-radius:8px}
+.footer-link{margin-top:25px;display:inline-block;border-radius:10px;background:#14283e;color:#fff;padding:13px 18px;font-weight:700;font-size:13px}
+footer{text-align:center;border-top:1px solid #e4ebf1;color:#9ba8b5;padding:20px;font-size:12px}
+[hidden]{display:none!important}
+@media(max-width:810px){.card{grid-template-columns:1fr}.photo-area{min-height:290px}.info-panel{padding:24px}}
+@media(max-width:480px){.wrap{padding:0 16px}nav{min-height:68px}.logo{font-size:18px}.back{font-size:11px;padding:10px}main{padding-top:24px}h1{font-size:26px}.price{font-size:26px}.photo-area{min-height:230px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><nav><a class="logo" href="index.html">عالم السيارات<small>CAR WORLD</small></a><a class="back" href="index.html#catalog">← العودة للسيارات</a></nav></div></header>
+<main class="wrap">
+<div class="breadcrumb">عالم السيارات / تفاصيل السيارة</div>
+<p id="status" class="status" role="status" aria-live="polite">جارٍ تحميل معلومات السيارة من قاعدة البيانات...</p>
+<section id="details" class="card" hidden aria-label="تفاصيل السيارة">
+ <div class="photo-panel">
+  <div class="photo-area"><img id="photo" alt="" hidden><span id="no-photo" class="no-photo" hidden>لا تتوفر صورة لهذه السيارة</span></div>
+  <a id="photo-credit" class="photo-credit" hidden target="_blank" rel="noopener noreferrer">مصدر الصورة: Wikimedia Commons</a>
+ </div>
+ <div class="info-panel">
+  <div class="kicker">معلومات السيارة</div>
+  <h1 id="name"></h1><p id="subtitle" class="subtitle"></p>
+  <div class="price-box"><small>السعر التقريبي (مثال تدريبي)</small><div class="price"><span id="price"></span> <span>ريال سعودي</span></div></div>
+  <h2>المواصفات الأساسية</h2>
+  <div class="specs">
+   <div class="spec"><span class="label">الشركة المصنعة</span><span id="brand" class="value"></span></div>
+   <div class="spec"><span class="label">اسم السيارة</span><span id="model" class="value"></span></div>
+   <div class="spec"><span class="label">سنة الموديل</span><span id="year" class="value"></span></div>
+   <div class="spec"><span class="label">حجم المحرك</span><span id="engine" class="value"></span></div>
+   <div class="spec"><span class="label">التصنيف</span><span id="category" class="value"></span></div>
+  </div>
+  <div class="tip">هذه صفحة تعليمية. المواصفات والأسعار أمثلة توضيحية، وليست عروض بيع أو معلومات رسمية. قد تختلف الصورة عن فئة السيارة أو سنة موديلها.</div>
+  <a class="footer-link" href="index.html#catalog">عرض سيارات أخرى ←</a>
+ </div>
+</section>
+</main>
+<footer>عالم السيارات — مشروع تعليمي</footer>
+<script src="supabase-config.js"></script>
+<script>
+(async function(){
+'use strict';
+const byId = id => document.getElementById(id);
+const status=byId('status');
+const details=byId('details');
+const config=window.CAR_WORLD_SUPABASE||{};
+const base=String(config.url||'').replace(/\/+$/,'');
+const key=String(config.publishableKey||'');
+const id=new URLSearchParams(window.location.search).get('id')||'';
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const categoryNames={sedan:'سيدان',suv:'دفع رباعي',crossover:'كروس أوفر'};
+const photos={
+ 'تويوتا|كامري':{file:'2025 Toyota Camry LE, front left.jpg',hash:'a/aa',credit:'MercurySable99'},
+ 'هيونداي|سوناتا':{file:'2024 Hyundai Sonata (facelift), front.jpg',hash:'b/bd',credit:'Kevauto'},
+ 'فورد|تورس':{file:'Ford Taurus 2023 (Front end, GCC Market).jpg',hash:'8/86',credit:'Mohammed Hamad'},
+ 'تويوتا|لاندكروزر':{file:'Toyota LAND CRUISER AX (3BA-VJA300W-GNUAZ) front.jpg',hash:'d/db',credit:'Tokumeigakarinoaoshima'},
+ 'كيا|سبورتاج':{file:'2025 Kia Sportage S front only.jpg',hash:'5/5d',credit:'LuvsMG481'},
+ 'نيسان|ألتيما':{file:'2024 Nissan Altima SR, front left, 05-05-2025.jpg',hash:'5/59',credit:'MercurySable99'}
+};
+function fail(message){status.textContent=message;status.classList.add('error');details.hidden=true;}
+function photoFor(car){
+ const custom=String(car.image_url||'').trim();
+ if(/^https:\/\/\S+$/i.test(custom)&&custom.length<=2048)return{src:custom};
+ const p=photos[String(car.brand)+'|'+String(car.model)];
+ if(!p)return null;
+ const encoded=encodeURIComponent(p.file.replaceAll(' ','_'));
+ return {
+  src:'https://upload.wikimedia.org/wikipedia/commons/thumb/'+p.hash+'/'+encoded+'/960px-'+encoded,
+  fallback:'https://commons.wikimedia.org/wiki/Special:FilePath/'+encoded+'?width=960',
+  credit:'صورة: '+p.credit+' — Wikimedia Commons (CC BY-SA 4.0)',
+  creditUrl:'https://commons.wikimedia.org/wiki/File:'+encoded
+ };
+}
+function showPhoto(car){
+ const img=byId('photo'),missing=byId('no-photo'),credit=byId('photo-credit');
+ const candidate=photoFor(car);
+ img.hidden=true;missing.hidden=true;credit.hidden=true;
+ if(!candidate){missing.hidden=false;return;}
+ let retried=false;
+ img.alt='صورة '+String(car.brand)+' '+String(car.model);
+ img.onerror=function(){
+  if(!retried&&candidate.fallback){retried=true;img.src=candidate.fallback;return;}
+  img.hidden=true;missing.hidden=false;credit.hidden=true;
+ };
+ img.onload=function(){img.hidden=false;missing.hidden=true;};
+ if(candidate.creditUrl){credit.href=candidate.creditUrl;credit.textContent=candidate.credit;credit.hidden=false;}
+ img.src=candidate.src;
+}
+function showCar(car){
+ const name=String(car.brand||'')+' '+String(car.model||'');
+ document.title=name+' | عالم السيارات';
+ byId('name').textContent=name;
+ byId('subtitle').textContent='موديل '+String(car.year||'');
+ byId('brand').textContent=car.brand||'—';
+ byId('model').textContent=car.model||'—';
+ byId('year').textContent=String(car.year||'—');
+ byId('engine').textContent=String(car.engine_liters||'—')+' لتر';
+ byId('category').textContent=categoryNames[car.category]||'غير محدد';
+ byId('price').textContent=new Intl.NumberFormat('ar-SA').format(Number(car.price_sar)||0);
+ showPhoto(car);
+ status.hidden=true;details.hidden=false;
+}
+if(!uuid.test(id)){fail('رابط السيارة غير صحيح. ارجع إلى قائمة السيارات واختر سيارة من جديد.');return;}
+if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(base)||!key.startsWith('sb_publishable_')){
+ fail('إعدادات الاتصال بقاعدة البيانات غير مكتملة.');return;
+}
+try{
+ const endpoint=base+'/rest/v1/cars?select=id,brand,model,year,engine_liters,price_sar,category,color,image_url&id=eq.'+encodeURIComponent(id)+'&limit=1';
+ const res=await fetch(endpoint,{cache:'no-store',headers:{apikey:key,Accept:'application/json'}});
+ if(!res.ok)throw Error('HTTP '+res.status);
+ const cars=await res.json();
+ if(!Array.isArray(cars))throw Error('Unexpected cars data');
+ if(cars.length!==1||cars[0].id!==id){fail('لم نعثر على هذه السيارة. ربما حُذفت؛ ارجع إلى القائمة.');return;}
+ showCar(cars[0]);
+}catch(error){
+ fail('تعذر تحميل تفاصيل السيارة الآن. تحقق من اتصال الإنترنت وحاول مرة أخرى.');
+}
+})();
+</script>
+</body>
+</html>
